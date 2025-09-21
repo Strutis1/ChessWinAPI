@@ -1,0 +1,38 @@
+#include "main.h"
+
+
+// Menu background + buttons
+IDB_MENU_BG        BITMAP  "Resources\\24bitmaps\\Menu\\background.bmp"
+IDB_MENU_PLAY      BITMAP  "Resources\\24bitmaps\\Menu\\PlayButton.bmp"
+IDB_MENU_LOAD      BITMAP  "Resources\\24bitmaps\\Menu\\LoadButton.bmp"
+IDB_MENU_SETTINGS  BITMAP  "Resources\\24bitmaps\\Menu\\SettingsButton.bmp"
+IDB_MENU_EXIT      BITMAP  "Resources\\24bitmaps\\Menu\\ExitButton.bmp"
+
+// White pieces
+IDB_PIECES_WPAWN    BITMAP "Resources\\24bitmaps\\Pieces\\white_pawn.bmp"
+IDB_PIECES_WQUEEN   BITMAP "Resources\\24bitmaps\\Pieces\\white_queen.bmp"
+IDB_PIECES_WKING    BITMAP "Resources\\24bitmaps\\Pieces\\white_king.bmp"
+IDB_PIECES_WROOK    BITMAP "Resources\\24bitmaps\\Pieces\\white_rook.bmp"
+IDB_PIECES_WKNIGHT  BITMAP "Resources\\24bitmaps\\Pieces\\white_knight.bmp"
+IDB_PIECES_WBISHOP  BITMAP "Resources\\24bitmaps\\Pieces\\white_bishop.bmp"
+
+// Black pieces
+IDB_PIECES_BPAWN    BITMAP "Resources\\24bitmaps\\Pieces\\black_pawn.bmp"
+IDB_PIECES_BQUEEN   BITMAP "Resources\\24bitmaps\\Pieces\\black_queen.bmp"
+IDB_PIECES_BKING    BITMAP "Resources\\24bitmaps\\Pieces\\black_king.bmp"
+IDB_PIECES_BROOK    BITMAP "Resources\\24bitmaps\\Pieces\\black_rook.bmp"
+IDB_PIECES_BKNIGHT  BITMAP "Resources\\24bitmaps\\Pieces\\black_knight.bmp"
+IDB_PIECES_BBISHOP  BITMAP "Resources\\24bitmaps\\Pieces\\black_bishop.bmp"
+
+// Boards
+
+IDB_BOARDS_GOLD   BITMAP "Resources\\24bitmaps\\Boards\\Board.bmp"
+IDB_BOARDS_PLAIN1   BITMAP "Resources\\24bitmaps\\Boards\\board_plain_01.bmp"
+IDB_BOARDS_PLAIN2   BITMAP "Resources\\24bitmaps\\Boards\\board_plain_02.bmp"
+IDB_BOARDS_PLAIN3   BITMAP "Resources\\24bitmaps\\Boards\\board_plain_03.bmp"
+IDB_BOARDS_PLAIN4   BITMAP "Resources\\24bitmaps\\Boards\\board_plain_04.bmp"
+IDB_BOARDS_PLAIN5   BITMAP "Resources\\24bitmaps\\Boards\\board_plain_05.bmp"
+
+// Icon
+IDI_MAIN ICON "Resources\\chessIcon.ico"
+
