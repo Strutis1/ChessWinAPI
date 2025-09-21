@@ -1,48 +1,60 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#define WINDOW_HEIGHT 1000
-#define WINDOW_WIDTH 920
+namespace Window {
+    constexpr int Height = 1000;
+    constexpr int Width  = 920;
+}
 
+namespace Menu {
+    constexpr int FileNew  = 1;
+    constexpr int FileOpen = 2;
+    constexpr int FileQuit = 3;
+    constexpr int EditRedo = 4;
+}
 
-#define IDM_FILE_NEW   1
-#define IDM_FILE_OPEN  2
-#define IDM_FILE_QUIT  3
-#define IDM_EDIT_REDO  4
+namespace Timer {
+    constexpr int GameLoop = 1;
+}
 
-#define IDT_GAMELOOP 1
+constexpr int FPS = 30;
 
-#define FPS 30
+namespace Resources {
+    namespace Menu {
+        constexpr int Background = 101;
+        constexpr int Play       = 102;
+        constexpr int Load       = 103;
+        constexpr int Settings   = 104;
+        constexpr int Exit       = 105;
+    }
 
+    namespace WhitePieces {
+        constexpr int Pawn   = 201;
+        constexpr int Queen  = 202;
+        constexpr int King   = 203;
+        constexpr int Rook   = 204;
+        constexpr int Knight = 205;
+        constexpr int Bishop = 206;
+    }
 
-#define IDB_MENU_BG        101
-#define IDB_MENU_PLAY      102
-#define IDB_MENU_LOAD      103
-#define IDB_MENU_SETTINGS  104
-#define IDB_MENU_EXIT      105
+    namespace BlackPieces {
+        constexpr int Pawn   = 301;
+        constexpr int Queen  = 302;
+        constexpr int King   = 303;
+        constexpr int Rook   = 304;
+        constexpr int Knight = 305;
+        constexpr int Bishop = 306;
+    }
 
-#define IDB_PIECES_WPAWN   201
-#define IDB_PIECES_WQUEEN  202
-#define IDB_PIECES_WKING   203
-#define IDB_PIECES_WROOK   204
-#define IDB_PIECES_WKNIGHT 205
-#define IDB_PIECES_WBISHOP 206
+    namespace Boards {
+        constexpr int Plain1 = 401;
+        constexpr int Plain2 = 402;
+        constexpr int Plain3 = 403;
+        constexpr int Plain4 = 404;
+        constexpr int Plain5 = 405;
+    }
 
-#define IDB_PIECES_BPAWN   301
-#define IDB_PIECES_BQUEEN  302
-#define IDB_PIECES_BKING   303
-#define IDB_PIECES_BROOK   304
-#define IDB_PIECES_BKNIGHT 305
-#define IDB_PIECES_BBISHOP 306
-
-#define IDB_BOARDS_PLAIN1  401
-#define IDB_BOARDS_PLAIN2  402
-#define IDB_BOARDS_PLAIN3  403
-#define IDB_BOARDS_PLAIN4  404
-#define IDB_BOARDS_PLAIN5  405
-#define IDB_BOARDS_GOLD 406
-
-#define IDI_MAIN 501
-
+    constexpr int IconMain = 501;
+}
 
 #endif
