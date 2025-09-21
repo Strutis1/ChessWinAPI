@@ -1,0 +1,48 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+#define WINDOW_HEIGHT 1000
+#define WINDOW_WIDTH 920
+
+
+#define IDM_FILE_NEW   1
+#define IDM_FILE_OPEN  2
+#define IDM_FILE_QUIT  3
+#define IDM_EDIT_REDO  4
+
+#define IDT_GAMELOOP 1
+
+#define FPS 30
+
+
+#define IDB_MENU_BG        101
+#define IDB_MENU_PLAY      102
+#define IDB_MENU_LOAD      103
+#define IDB_MENU_SETTINGS  104
+#define IDB_MENU_EXIT      105
+
+#define IDB_PIECES_WPAWN   201
+#define IDB_PIECES_WQUEEN  202
+#define IDB_PIECES_WKING   203
+#define IDB_PIECES_WROOK   204
+#define IDB_PIECES_WKNIGHT 205
+#define IDB_PIECES_WBISHOP 206
+
+#define IDB_PIECES_BPAWN   301
+#define IDB_PIECES_BQUEEN  302
+#define IDB_PIECES_BKING   303
+#define IDB_PIECES_BROOK   304
+#define IDB_PIECES_BKNIGHT 305
+#define IDB_PIECES_BBISHOP 306
+
+#define IDB_BOARDS_PLAIN1  401
+#define IDB_BOARDS_PLAIN2  402
+#define IDB_BOARDS_PLAIN3  403
+#define IDB_BOARDS_PLAIN4  404
+#define IDB_BOARDS_PLAIN5  405
+#define IDB_BOARDS_GOLD 406
+
+#define IDI_MAIN 501
+
+
+#endif
