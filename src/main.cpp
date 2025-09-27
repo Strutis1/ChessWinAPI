@@ -1,34 +1,72 @@
 #include "windows.h"
 #include "constants.h"
+#include "utilz.h"
 #include <gdiplus.h>
 #include <stdio.h>
 
 HINSTANCE hInst;
 
+HBITMAP background = nullptr;
 
-using namespace Gdiplus;
 
 
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
     switch(uMsg){
         case WM_CREATE:
+            SetTimer(hwnd, Timer::GameLoop, 1000 / FPS, NULL);
+            RECT rc;
+            GetClientRect(hwnd, &rc);
+            background = LoadPngAsHBITMAP(hInst, Resources::Menu::Background, rc.right - rc.left, rc.bottom - rc.top);
             break;
         case WM_TIMER:
+            if (wParam == Timer::GameLoop) {
+                InvalidateRect(hwnd, NULL, FALSE);
+            }
             break;
+
+        case WM_SIZE: {
+            if (background) {
+                DeleteObject(background);
+                background = NULL;
+            }
+
+            RECT rc;
+            GetClientRect(hwnd, &rc);
+
+            if (rc.right > 0 && rc.bottom > 0) {
+                background = LoadPngAsHBITMAP(
+                    hInst,
+                    Resources::Menu::Background,
+                    rc.right - rc.left,
+                    rc.bottom - rc.top
+                );
+            }
+
+            InvalidateRect(hwnd, NULL, TRUE);
+            break;
+        }
         case WM_PAINT:{
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
-            RECT rect = {50, 120, 450, 15};
-            HBRUSH brush = CreateSolidBrush(RGB(50, 151, 151));
-            GetClientRect(hwnd, &rect);
-            FillRect(hdc, &rect, brush);
+            Gdiplus::Graphics graphics(hdc);
+            if (background) {
+                RECT rc;
+                GetClientRect(hwnd, &rc);
+                HDC memDC = CreateCompatibleDC(hdc);
+                HBITMAP old = (HBITMAP)SelectObject(memDC, background);
+                BitBlt(hdc, 0, 0, rc.right, rc.bottom, memDC, 0, 0, SRCCOPY);
+                SelectObject(memDC, old);
+                DeleteDC(memDC);
+            }
             EndPaint(hwnd, &ps);
             break;
         }
         case WM_COMMAND:
             break;
         case WM_DESTROY:
+            delete background;
+            KillTimer(hwnd, Timer::GameLoop);
             PostQuitMessage(0);
             break;
     }
@@ -41,7 +79,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow){
     hInst = hInstance;
 
-    GdiplusStartupInput gdiplusStartupInput;
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
     GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
     MSG msg;
@@ -83,7 +121,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         DispatchMessage(&msg);
     }
 
-    GdiplusShutdown(gdiplusToken);
+    Gdiplus::GdiplusShutdown(gdiplusToken);
 
 
     return (int) msg.wParam;
