@@ -7,5 +7,5 @@ class Tile{
     bool occupied;
 
 
-    Tile()
-}
+    Tile();
+};

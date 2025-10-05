@@ -1,37 +1,37 @@
-#include "..\\src\\resource.h"
+#include "../src/resource.h"
 
 
 // Menu background + buttons
-IDB_MENU_BG        PNG  "..\\Resources\\Menu\\Background.png"
-IDB_MENU_PLAY      PNG  "..\\Resources\\Menu\\PlayButton.png"
-IDB_MENU_LOAD      PNG  "..\\Resources\\Menu\\LoadButton.png"
-IDB_MENU_SETTINGS  PNG  "..\\Resources\\Menu\\SettingsButton.png"
-IDB_MENU_EXIT      PNG  "..\\Resources\\Menu\\ExitButton.png"
+IDB_MENU_BG        PNG  "../Resources/Menu/Background.png"
+IDB_MENU_PLAY      PNG  "../Resources/Menu/PlayButton.png"
+IDB_MENU_LOAD      PNG  "../Resources/Menu/LoadButton.png"
+IDB_MENU_SETTINGS  PNG  "../Resources/Menu/SettingsButton.png"
+IDB_MENU_EXIT      PNG  "../Resources/Menu/ExitButton.png"
 
 // White pieces
-IDB_PIECES_WPAWN    PNG "..\\Resources\\Pieces\\white_pawn.png"
-IDB_PIECES_WQUEEN   PNG "..\\Resources\\Pieces\\white_queen.png"
-IDB_PIECES_WKING    PNG "..\\Resources\\Pieces\\white_king.png"
-IDB_PIECES_WROOK    PNG "..\\Resources\\Pieces\\white_rook.png"
-IDB_PIECES_WKNIGHT  PNG "..\\Resources\\Pieces\\white_knight.png"
-IDB_PIECES_WBISHOP  PNG "..\\Resources\\Pieces\\white_bishop.png"
+IDB_PIECES_WPAWN    PNG "../Resources/Pieces/white_pawn.png"
+IDB_PIECES_WQUEEN   PNG "../Resources/Pieces/white_queen.png"
+IDB_PIECES_WKING    PNG "../Resources/Pieces/white_king.png"
+IDB_PIECES_WROOK    PNG "../Resources/Pieces/white_rook.png"
+IDB_PIECES_WKNIGHT  PNG "../Resources/Pieces/white_knight.png"
+IDB_PIECES_WBISHOP  PNG "../Resources/Pieces/white_bishop.png"
 
 // Black pieces
-IDB_PIECES_BPAWN    PNG "..\\Resources\\Pieces\\black_pawn.png"
-IDB_PIECES_BQUEEN   PNG "..\\Resources\\Pieces\\black_queen.png"
-IDB_PIECES_BKING    PNG "..\\Resources\\Pieces\\black_king.png"
-IDB_PIECES_BROOK    PNG "..\\Resources\\Pieces\\black_rook.png"
-IDB_PIECES_BKNIGHT  PNG "..\\Resources\\Pieces\\black_knight.png"
-IDB_PIECES_BBISHOP  PNG "..\\Resources\\Pieces\\black_bishop.png"
+IDB_PIECES_BPAWN    PNG "../Resources/Pieces/black_pawn.png"
+IDB_PIECES_BQUEEN   PNG "../Resources/Pieces/black_queen.png"
+IDB_PIECES_BKING    PNG "../Resources/Pieces/black_king.png"
+IDB_PIECES_BROOK    PNG "../Resources/Pieces/black_rook.png"
+IDB_PIECES_BKNIGHT  PNG "../Resources/Pieces/black_knight.png"
+IDB_PIECES_BBISHOP  PNG "../Resources/Pieces/black_bishop.png"
 
 // Boards
 
-IDB_BOARDS_PLAIN1   PNG "..\\Resources\\Boards\\board_plain_01.png"
-IDB_BOARDS_PLAIN2   PNG "..\\Resources\\Boards\\board_plain_02.png"
-IDB_BOARDS_PLAIN3   PNG "..\\Resources\\Boards\\board_plain_03.png"
-IDB_BOARDS_PLAIN4   PNG "..\\Resources\\Boards\\board_plain_04.png"
-IDB_BOARDS_PLAIN5   PNG "..\\Resources\\Boards\\board_plain_05.png"
+IDB_BOARDS_PLAIN1   PNG "../Resources/Boards/board_plain_01.png"
+IDB_BOARDS_PLAIN2   PNG "../Resources/Boards/board_plain_02.png"
+IDB_BOARDS_PLAIN3   PNG "../Resources/Boards/board_plain_03.png"
+IDB_BOARDS_PLAIN4   PNG "../Resources/Boards/board_plain_04.png"
+IDB_BOARDS_PLAIN5   PNG "../Resources/Boards/board_plain_05.png"
 
 // Icon
-IDI_MAIN ICON "..\\Resources\\chessIcon.ico"
+IDI_MAIN ICON "../Resources/chessIcon.ico"
 
