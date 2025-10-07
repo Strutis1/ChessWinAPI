@@ -13,7 +13,7 @@ endif
 
 CFLAGS = -std=c++20 -O2
 
-SRC = src/main.cpp src/utilz.cpp
+SRC = src/main.cpp src/Utility/utilz.cpp src/Utility/gameAssets.cpp src/Game/screens.cpp src/Game/game.cpp
 OBJ = $(SRC:.cpp=.o)
 RES = Resources/res.o
 

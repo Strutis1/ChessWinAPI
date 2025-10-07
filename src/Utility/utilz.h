@@ -1,7 +1,6 @@
 #ifndef UTILZ_H
 #define UTILZ_H
 
-
 #include <windows.h>
 #include <objidl.h>
 #include <gdiplus.h>
@@ -14,8 +13,6 @@ using namespace Gdiplus;
 
 using namespace Gdiplus;
 
-HBITMAP LoadPngAsHBITMAP(HINSTANCE hInst, int resourceID, int width, int height);
-
-
+Image *LoadPngFromResource(HINSTANCE hInst, int resourceID);
 
 #endif
