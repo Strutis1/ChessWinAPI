@@ -12,6 +12,8 @@ HINSTANCE hInst;
 
 GameState gameState;
 
+// TODO get/make some better sprites for them to match
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -85,12 +87,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDOWN:
     {
         POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-        if (PtInRect(&menuPlayRect, pt))
+        if (PtInRect(&playButton.rect, pt))
         {
             gameState.currentScreen = GameScreen::Playing;
             InvalidateRect(hwnd, NULL, TRUE);
         }
-        else if (PtInRect(&menuExitRect, pt))
+        else if (PtInRect(&exitButton.rect, pt))
         {
             PostMessage(hwnd, WM_CLOSE, 0, 0);
         }
@@ -99,6 +101,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     // handle button jump or glow or whatever
     case WM_MOUSEMOVE:
     {
+        POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+        playButton.onHover(hwnd, PtInRect(&playButton.rect, pt));
+        loadButton.onHover(hwnd, PtInRect(&loadButton.rect, pt));
+        settingsButton.onHover(hwnd, PtInRect(&settingsButton.rect, pt));
+        exitButton.onHover(hwnd, PtInRect(&exitButton.rect, pt));
+        break;
     }
 
     case WM_COMMAND:

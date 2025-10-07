@@ -3,8 +3,8 @@
 
 namespace Window
 {
-    constexpr int Height = 1000;
-    constexpr int Width = 920;
+    constexpr int Height = 1080;
+    constexpr int Width = 1080;
 }
 
 namespace Menu
