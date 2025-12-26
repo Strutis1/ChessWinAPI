@@ -10,6 +10,7 @@ struct Button
     RECT rect = {0, 0, 0, 0};
     Gdiplus::Image *image = nullptr;
     bool hovered = false;
+    bool disabled = false;
 
     void init(Gdiplus::Image *img, int x, int y, int w, int h);
 

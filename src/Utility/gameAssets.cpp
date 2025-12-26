@@ -7,11 +7,12 @@ GameAssets gAssets;
 void GameAssets::load(HINSTANCE hInst)
 {
     // Menu
-    menuBg = LoadPngFromResource(hInst, IDB_MENU_BG);
-    menuPlay = LoadPngFromResource(hInst, IDB_MENU_PLAY);
-    menuLoad = LoadPngFromResource(hInst, IDB_MENU_LOAD);
-    menuSettings = LoadPngFromResource(hInst, IDB_MENU_SETTINGS);
-    menuExit = LoadPngFromResource(hInst, IDB_MENU_EXIT);
+    mainmenuBg = LoadPngFromResource(hInst, IDB_MAINMENU_BG);
+    woodmenuBg = LoadPngFromResource(hInst, IDB_WOODMENU_BG);
+    // menuPlay = LoadPngFromResource(hInst, IDB_MENU_PLAY);
+    // menuLoad = LoadPngFromResource(hInst, IDB_MENU_LOAD);
+    // menuSettings = LoadPngFromResource(hInst, IDB_MENU_SETTINGS);
+    // menuExit = LoadPngFromResource(hInst, IDB_MENU_EXIT);
 
     // White pieces
     whitePawn = LoadPngFromResource(hInst, IDB_PIECES_WPAWN);
@@ -39,11 +40,12 @@ void GameAssets::load(HINSTANCE hInst)
 
 void GameAssets::unload()
 {
-    delete menuBg;
-    delete menuPlay;
-    delete menuLoad;
-    delete menuSettings;
-    delete menuExit;
+    delete mainmenuBg;
+    delete woodmenuBg;
+    // delete menuPlay;
+    // delete menuLoad;
+    // delete menuSettings;
+    // delete menuExit;
 
     delete whitePawn;
     delete whiteQueen;

@@ -3,7 +3,7 @@
 
 namespace Window
 {
-    constexpr int Height = 1080;
+    constexpr int Height = 800;
     constexpr int Width = 1080;
 }
 
@@ -24,14 +24,14 @@ constexpr int FPS = 30;
 
 namespace Resources
 {
-    namespace Menu
-    {
-        constexpr int Background = 101;
-        constexpr int Play = 102;
-        constexpr int Load = 103;
-        constexpr int Settings = 104;
-        constexpr int Exit = 105;
-    }
+    // namespace Menu
+    // {
+    //     constexpr int Background = 101;
+    //     constexpr int Play = 102;
+    //     constexpr int Load = 103;
+    //     constexpr int Settings = 104;
+    //     constexpr int Exit = 105;
+    // }
 
     namespace WhitePieces
     {

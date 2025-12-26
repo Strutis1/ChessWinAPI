@@ -1,37 +1,38 @@
 {
-    "configurations": [
-        {
-            "name": "Windows (MinGW on Linux)",
-            "intelliSenseMode": "gcc-x64",
-            "compilerPath": "/usr/bin/x86_64-w64-mingw32-g++",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "/usr/x86_64-w64-mingw32/include",
-                "/usr/x86_64-w64-mingw32/include/c++/15.2.0",
-                "/usr/x86_64-w64-mingw32/include/c++/15.2.0/x86_64-w64-mingw32"
-            ],
-            "defines": [
-                "_WIN32",
-                "_WINDOWS"
-            ],
-            "cppStandard": "c++20"
-        },
-        {
-            "name": "Windows (Native MinGW)",
-            "intelliSenseMode": "gcc-x64",
-            "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "C:/msys64/mingw64/include",
-                "C:/msys64/mingw64/include/c++/15.2.0",
-                "C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32"
-            ],
-            "defines": [
-                "_WIN32",
-                "_WINDOWS"
-            ],
-            "cppStandard": "c++20"
-        }
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "name": "windows-clang-x64",
+      "intelliSenseMode": "windows-clang-x64",
+      "compilerPath": "/usr/bin/x86_64-w64-mingw32-g++",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/usr/x86_64-w64-mingw32/include",
+        "/usr/x86_64-w64-mingw32/include/c++/15.2.0",
+        "/usr/x86_64-w64-mingw32/include/c++/15.2.0/x86_64-w64-mingw32"
+      ],
+      "defines": [
+        "_WIN32",
+        "_WINDOWS"
+      ],
+      "cppStandard": "c++20",
+      "cStandard": "${default}"
+    },
+    {
+      "name": "Windows (Native MinGW)",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "C:/msys64/mingw64/include",
+        "C:/msys64/mingw64/include/c++/15.2.0",
+        "C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32"
+      ],
+      "defines": [
+        "_WIN32",
+        "_WINDOWS"
+      ],
+      "cppStandard": "c++20"
+    }
+  ],
+  "version": 4
 }

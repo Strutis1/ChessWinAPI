@@ -8,11 +8,12 @@ using namespace Gdiplus;
 struct GameAssets
 {
     // Menu
-    Image *menuBg;
-    Image *menuPlay;
-    Image *menuLoad;
-    Image *menuSettings;
-    Image *menuExit;
+    Image *mainmenuBg;
+    Image *woodmenuBg;
+    // Image *menuPlay;
+    // Image *menuLoad;
+    // Image *menuSettings;
+    // Image *menuExit;
 
     // Pieces
     Image *whitePawn;

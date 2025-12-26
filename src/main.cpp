@@ -12,126 +12,186 @@ HINSTANCE hInst;
 
 GameState gameState;
 
-// TODO get/make some better sprites for them to match
+static HDC     gBackDC   = NULL;
+static HBITMAP gBackBmp  = NULL;
+static HGDIOBJ gBackOld  = NULL;
+static int     gBackW    = 0;
+static int     gBackH    = 0;
+
+static void DestroyBackBuffer()
+{
+    if (gBackDC)
+    {
+        if (gBackOld) SelectObject(gBackDC, gBackOld);
+        gBackOld = NULL;
+
+        if (gBackBmp) DeleteObject(gBackBmp);
+        gBackBmp = NULL;
+
+        DeleteDC(gBackDC);
+        gBackDC = NULL;
+    }
+
+    gBackW = 0;
+    gBackH = 0;
+}
+
+static void CreateBackBuffer(HWND hwnd)
+{
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+
+    int w = rc.right - rc.left;
+    int h = rc.bottom - rc.top;
+
+    if (w <= 0 || h <= 0) return;
+
+    if (gBackDC && gBackBmp && w == gBackW && h == gBackH) return;
+
+    DestroyBackBuffer();
+
+    HDC hdc = GetDC(hwnd);
+
+    gBackDC  = CreateCompatibleDC(hdc);
+    gBackBmp = CreateCompatibleBitmap(hdc, w, h);
+    gBackOld = SelectObject(gBackDC, gBackBmp);
+
+    gBackW = w;
+    gBackH = h;
+
+    ReleaseDC(hwnd, hdc);
+}
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
     case WM_CREATE:
+    {
         gameState.init();
         gAssets.load(((LPCREATESTRUCT)lParam)->hInstance);
+
+        CreateBackBuffer(hwnd);
+
         SetTimer(hwnd, Timer::GameLoop, 1000 / FPS, NULL);
-        break;
+        return 0;
+    }
+
+    case WM_SIZE:
+    {
+        CreateBackBuffer(hwnd);
+        InvalidateRect(hwnd, NULL, TRUE);
+        return 0;
+    }
+
     case WM_TIMER:
         if (wParam == Timer::GameLoop)
         {
-            InvalidateRect(hwnd, NULL, FALSE);
+            if (gameState.currentScreen == GameScreen::Playing)
+                InvalidateRect(hwnd, NULL, FALSE);
         }
-        break;
+        return 0;
 
-    // case WM_SIZE:
-    // {
-    //     if (background)
-    //     {
-    //         DeleteObject(background);
-    //         background = NULL;
-    //     }
-
-    //     RECT rc;
-    //     GetClientRect(hwnd, &rc);
-
-    //     if (rc.right > 0 && rc.bottom > 0)
-    //     {
-    //         background = LoadPngAsHBITMAP(
-    //             hInst,
-    //             Resources::Menu::Background,
-    //             rc.right - rc.left,
-    //             rc.bottom - rc.top);
-    //     }
-
-    //     InvalidateRect(hwnd, NULL, TRUE);
-    //     break;
-    // }
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
-        switch (gameState.currentScreen)
+
+        CreateBackBuffer(hwnd);
+
+        if (gBackDC && gBackBmp)
         {
-        case GameScreen::MainMenu:
-            if (gAssets.menuBg && gAssets.menuPlay && gAssets.menuSettings && gAssets.menuLoad && gAssets.menuExit)
+            RECT rc;
+            GetClientRect(hwnd, &rc);
+
+            HBRUSH bg = CreateSolidBrush(RGB(0, 0, 0));
+            FillRect(gBackDC, &rc, bg);
+            DeleteObject(bg);
+
+            switch (gameState.currentScreen)
             {
-                drawMainMenu(hwnd, hdc);
+            case GameScreen::MainMenu:
+                drawMainMenu(hwnd, gBackDC);
+                break;
+            case GameScreen::Playing:
+                drawGameScreen(hwnd, gBackDC);
+                break;
+            case GameScreen::GameOver:
+                drawGameOver(hwnd, gBackDC);
+                break;
             }
-            break;
-        case GameScreen::Playing:
-            if (1)
-            {
-                drawGameScreen(hwnd, hdc);
-            }
-            break;
-        case GameScreen::GameOver:
-            if (1)
-            {
-                drawGameOver(hwnd, hdc);
-            }
-            break;
+
+            BitBlt(hdc, 0, 0, gBackW, gBackH, gBackDC, 0, 0, SRCCOPY);
         }
+
         EndPaint(hwnd, &ps);
-        break;
+        return 0;
     }
+
     case WM_SETCURSOR:
         SetCursor(LoadCursor(NULL, IDC_ARROW));
         return TRUE;
+
     case WM_LBUTTONDOWN:
     {
-        POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+        
+        POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+
         if (PtInRect(&playButton.rect, pt))
         {
             gameState.currentScreen = GameScreen::Playing;
             InvalidateRect(hwnd, NULL, TRUE);
         }
+        else if (PtInRect(&loadButton.rect, pt))
+            {
+                if (!loadButton.disabled)
+                {
+                    gameState.currentScreen = GameScreen::Playing;
+                    InvalidateRect(hwnd, NULL, TRUE);
+                }
+            }
+        else if (PtInRect(&settingsButton.rect, pt))
+        {
+            // Settings not implemented yet
+        }
         else if (PtInRect(&exitButton.rect, pt))
         {
             PostMessage(hwnd, WM_CLOSE, 0, 0);
         }
-        break;
+        return 0;
     }
-    // handle button jump or glow or whatever
+
     case WM_MOUSEMOVE:
     {
-        POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+        POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
         playButton.onHover(hwnd, PtInRect(&playButton.rect, pt));
         loadButton.onHover(hwnd, PtInRect(&loadButton.rect, pt));
         settingsButton.onHover(hwnd, PtInRect(&settingsButton.rect, pt));
         exitButton.onHover(hwnd, PtInRect(&exitButton.rect, pt));
-        break;
+        return 0;
     }
 
-    case WM_COMMAND:
-        break;
     case WM_DESTROY:
         KillTimer(hwnd, Timer::GameLoop);
         gAssets.unload();
-        gameState.running = false; // pretty sure that does nothing because its already shutting down
+        DestroyBackBuffer();
+        gameState.running = false;
         PostQuitMessage(0);
-        break;
+        return 0;
     }
 
     return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
     hInst = hInstance;
 
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
-    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-    MSG msg;
-    WNDCLASSEXW wc = {0};
+    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
+    WNDCLASSEXW wc = { 0 };
     wc.cbSize = sizeof(WNDCLASSEXW);
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = WindowProc;
@@ -148,14 +208,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         CW_USEDEFAULT, CW_USEDEFAULT,
         Window::Width, Window::Height,
         NULL, NULL, hInst, 0);
+
     ShowCursor(TRUE);
 
-    if (hwnd == NULL)
+    if (!hwnd)
     {
         MessageBoxW(NULL, L"Couldn't create window", L"Error", 0);
         return -1;
     }
 
+    MSG msg;
     while (GetMessage(&msg, NULL, 0, 0))
     {
         TranslateMessage(&msg);
@@ -163,6 +225,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     }
 
     Gdiplus::GdiplusShutdown(gdiplusToken);
-
     return (int)msg.wParam;
 }

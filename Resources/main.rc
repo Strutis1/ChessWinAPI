@@ -2,11 +2,12 @@
 
 
 // Menu background + buttons
-IDB_MENU_BG        PNG  "../Resources/Menu/Background.png"
-IDB_MENU_PLAY      PNG  "../Resources/Menu/PLAY.png"
-IDB_MENU_LOAD      PNG  "../Resources/Menu/LOAD.png"
-IDB_MENU_SETTINGS  PNG  "../Resources/Menu/SETTINGS.png"
-IDB_MENU_EXIT      PNG  "../Resources/Menu/EXIT.png"
+IDB_MAINMENU_BG        PNG  "../Resources/Menu/MenuBackground.png"
+IDB_WOODMENU_BG        PNG  "../Resources/Menu/SimpleBackground.png"
+//IDB_MENU_PLAY      PNG  "../Resources/Menu/PLAY.png"
+//IDB_MENU_LOAD      PNG  "../Resources/Menu/LOAD.png"
+//IDB_MENU_SETTINGS  PNG  "../Resources/Menu/SETTINGS.png"
+//IDB_MENU_EXIT      PNG  "../Resources/Menu/EXIT.png"
 
 // White pieces
 IDB_PIECES_WPAWN    PNG "../Resources/Pieces/white_pawn.png"
