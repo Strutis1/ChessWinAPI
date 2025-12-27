@@ -55,3 +55,8 @@ Image* LoadPngFromResource(HINSTANCE hInst, int resourceID)
     return img;
 }
 
+
+int min(int a, int b)
+{
+    return (a < b) ? a : b;
+}

@@ -1,8 +1,10 @@
 #include "screens.h"
 #include "../Utility/constants.h"
 #include "../Utility/gameAssets.h"
+#include "../Utility/utilz.h"
 #include "appState.h"
 #include <string>
+#include "game.h"
 
 Button playButton;
 Button loadButton;
@@ -213,15 +215,29 @@ void drawMainMenu(HWND hwnd, HDC hdc)
 
 void drawGameScreen(HWND hwnd, HDC hdc)
 {
-    Gdiplus::Graphics graphics(hdc);
+    Gdiplus::Graphics g(hdc);
+
+    g.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
+    g.SetCompositingQuality(Gdiplus::CompositingQualityHighQuality);
+    g.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+    g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHighQuality);
+    g.SetSmoothingMode(Gdiplus::SmoothingModeHighQuality);
+
     RECT rc;
     GetClientRect(hwnd, &rc);
-    drawBoard(hwnd, graphics, currentBoardLayout);
+
+    if (gAssets.woodmenuBg)
+    {
+        g.DrawImage(gAssets.woodmenuBg, 0, 0, rc.right, rc.bottom);
+    }
+
+    drawBoard(hwnd, g, currentBoardLayout);
 }
+
 
 void drawGameOver(HWND hwnd, HDC hdc)
 {
-    Gdiplus::Graphics graphics(hdc);
+    Gdiplus::Graphics g(hdc);
     RECT rc;
     GetClientRect(hwnd, &rc);
 }
@@ -232,21 +248,26 @@ void updateBoardLayout(HWND hwnd)
     RECT rc;
     GetClientRect(hwnd, &rc);
 
-    int w = rc.right - rc.left;
-    int h = rc.bottom - rc.top;
+    const int margin = 20;
 
-    int sizeByWidth  = w / BoardUI::BoardCols;
-    int sizeByHeight = h / BoardUI::BoardRows;
-    int squareSize = (sizeByWidth < sizeByHeight) ? sizeByWidth : sizeByHeight;
+    int w = (rc.right - rc.left) - 2 * margin;
+    int h = (rc.bottom - rc.top) - 2 * margin;
+
+    int maxSquare = min(w / BoardUI::BoardCols, h / BoardUI::BoardRows);
+
+    int squareSize = (maxSquare / 32) * 32;
+
+    if (squareSize < 32) squareSize = 32;
 
     int boardW = squareSize * BoardUI::BoardCols;
     int boardH = squareSize * BoardUI::BoardRows;
 
-    int originX = (w - boardW) / 2;
-    int originY = (h - boardH) / 2;
+    int originX = margin + (w - boardW) / 2;
+    int originY = margin + (h - boardH) / 2;
 
     currentBoardLayout = BoardLayout(originX, originY, squareSize);
 }
+
 
 void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
 {
@@ -255,18 +276,63 @@ void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
         for (int col = 0; col < BoardUI::BoardCols; ++col)
         {
             bool isLightSquare = ((row + col) % 2 == 0);
-            Gdiplus::Color squareColor = isLightSquare ? Gdiplus::Color(255, 240, 217, 181)
-                                                      : Gdiplus::Color(255, 181, 136, 99);
-
+            Gdiplus::Color squareColor = isLightSquare ? Gdiplus::Color(255, 210, 210, 210)
+                                                      : Gdiplus::Color(255, 95, 95, 95);
+                                                
             Gdiplus::SolidBrush brush(squareColor);
 
             int x = layout.originX + col * layout.squareSize;
             int y = layout.originY + row * layout.squareSize;
+            
 
-            Gdiplus::RectF squareRect((Gdiplus::REAL)x, (Gdiplus::REAL)y,
+            Gdiplus::Rect squareRect((Gdiplus::REAL)x, (Gdiplus::REAL)y,
                                       (Gdiplus::REAL)layout.squareSize, (Gdiplus::REAL)layout.squareSize);
 
             g.FillRectangle(&brush, squareRect);
+
+            //handle selected piece highlighting
+            if(chessGame.getSelectedPosX() == col && chessGame.getSelectedPosY() == row)
+            {
+                Gdiplus::Pen pen(Gdiplus::Color(255, 250, 170, 0), 4.0f);
+                g.DrawRectangle(&pen, squareRect);
+            }
+
+
+            Piece piece = chessGame.getBoard().getPieceAt(col, row);
+            if (piece.type != PieceType::NONE)
+            {
+                Gdiplus::Image* pieceImage = nullptr;
+                switch (piece.type)
+                {
+                case PieceType::PAWN:
+                    pieceImage = (piece.color == PieceColor::WHITE) ? gAssets.whitePawn : gAssets.blackPawn;
+                    break;
+                case PieceType::ROOK:
+                    pieceImage = (piece.color == PieceColor::WHITE) ? gAssets.whiteRook : gAssets.blackRook;
+                    break;
+                case PieceType::KNIGHT:
+                    pieceImage = (piece.color == PieceColor::WHITE) ? gAssets.whiteKnight : gAssets.blackKnight;
+                    break;
+                case PieceType::BISHOP:
+                    pieceImage = (piece.color == PieceColor::WHITE) ? gAssets.whiteBishop : gAssets.blackBishop;
+                    break;
+                case PieceType::QUEEN:
+                    pieceImage = (piece.color == PieceColor::WHITE) ? gAssets.whiteQueen : gAssets.blackQueen;
+                    break;
+                case PieceType::KING:
+                    pieceImage = (piece.color == PieceColor::WHITE) ? gAssets.whiteKing : gAssets.blackKing;
+                    break;
+                default:
+                    break;
+                }
+
+                if (pieceImage)
+                {
+                    g.SetInterpolationMode(Gdiplus::InterpolationModeNearestNeighbor);
+                    g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHalf);
+                    g.DrawImage(pieceImage, x, y, layout.squareSize, layout.squareSize);
+                }
+            }
         }
     }
 }

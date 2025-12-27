@@ -72,6 +72,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
     {
         appState.init();
+        chessGame.init();
         gAssets.load(((LPCREATESTRUCT)lParam)->hInstance);
 
         CreateBackBuffer(hwnd);
@@ -168,9 +169,34 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if(appState.currentScreen == GameScreen::Playing){
             POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-            Piece selectedPiece = chessGame.detectSelection(pt.x, pt.y);
-            chessGame.setSelectedPiece(selectedPiece);  
-            return 0;
+            if(pointInBoard(currentBoardLayout, pt.x, pt.y)){
+                int boardX = (pt.x - currentBoardLayout.originX) / currentBoardLayout.squareSize;
+                int boardY = (pt.y - currentBoardLayout.originY) / currentBoardLayout.squareSize;
+                if(chessGame.getSelectedPiece().type != PieceType::NONE){
+                    Move move(chessGame.getSelectedPosX(), chessGame.getSelectedPosY(), boardX, boardY);
+                    
+
+                    if(chessGame.isLegalMove(move)){
+                        chessGame.makeMove(move);
+                        chessGame.clearSelectedPiece();
+                        chessGame.clearSelectedPosition();
+                        InvalidateRect(hwnd, NULL, FALSE);
+                        return 0;
+                    }
+                    else{
+                        chessGame.clearSelectedPiece();
+                        chessGame.clearSelectedPosition();
+                        InvalidateRect(hwnd, NULL, FALSE);
+                        return 0;
+                    }
+                }
+
+                Piece selectedPiece = chessGame.detectSelection(boardX, boardY);
+                chessGame.setSelectedPiece(selectedPiece);
+                chessGame.setSelectedPosition(boardX, boardY);
+
+                return 0;
+            }
         }
         else if(appState.currentScreen == GameScreen::GameOver){
             return 0;

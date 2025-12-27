@@ -10,6 +10,8 @@ void ChessGame::init()
     gameOver = false;
     theBoard.reset();
     setTheBoardUp();
+    selectedX = -1;
+    selectedY = -1;
 }
 bool ChessGame::isLegalMove(const Move& move)
 {
@@ -69,28 +71,29 @@ Piece ChessGame::detectSelection(int x, int y)
 }
 
 
+
 void ChessGame::setTheBoardUp()
 {
-    theBoard.setPieceAt(0, 0, Piece(PieceType::ROOK, PieceColor::WHITE));
-    theBoard.setPieceAt(0, 1, Piece(PieceType::KNIGHT, PieceColor::WHITE));
-    theBoard.setPieceAt(0, 2, Piece(PieceType::BISHOP, PieceColor::WHITE));
-    theBoard.setPieceAt(0, 3, Piece(PieceType::QUEEN, PieceColor::WHITE));
-    theBoard.setPieceAt(0, 4, Piece(PieceType::KING, PieceColor::WHITE));
-    theBoard.setPieceAt(0, 5, Piece(PieceType::BISHOP, PieceColor::WHITE));
-    theBoard.setPieceAt(0, 6, Piece(PieceType::KNIGHT, PieceColor::WHITE));
-    theBoard.setPieceAt(0, 7, Piece(PieceType::ROOK, PieceColor::WHITE));
+    theBoard.setPieceAt(0, 0, Piece(PieceType::ROOK, PieceColor::BLACK));
+    theBoard.setPieceAt(1, 0, Piece(PieceType::KNIGHT, PieceColor::BLACK));
+    theBoard.setPieceAt(2, 0, Piece(PieceType::BISHOP, PieceColor::BLACK));
+    theBoard.setPieceAt(3, 0, Piece(PieceType::QUEEN, PieceColor::BLACK));
+    theBoard.setPieceAt(4, 0, Piece(PieceType::KING, PieceColor::BLACK));
+    theBoard.setPieceAt(5, 0, Piece(PieceType::BISHOP, PieceColor::BLACK));
+    theBoard.setPieceAt(6, 0, Piece(PieceType::KNIGHT, PieceColor::BLACK));
+    theBoard.setPieceAt(7, 0, Piece(PieceType::ROOK, PieceColor::BLACK));
     for (int col = 0; col < 8; ++col)
     {
-        theBoard.setPieceAt(1, col, Piece(PieceType::PAWN, PieceColor::WHITE));
-        theBoard.setPieceAt(6, col, Piece(PieceType::PAWN, PieceColor::BLACK));
+        theBoard.setPieceAt(col, 1, Piece(PieceType::PAWN, PieceColor::BLACK));
+        theBoard.setPieceAt(col, 6, Piece(PieceType::PAWN, PieceColor::WHITE));
     }
-    theBoard.setPieceAt(7, 0, Piece(PieceType::ROOK, PieceColor::BLACK));
-    theBoard.setPieceAt(7, 1, Piece(PieceType::KNIGHT, PieceColor::BLACK));
-    theBoard.setPieceAt(7, 2, Piece(PieceType::BISHOP, PieceColor::BLACK));
-    theBoard.setPieceAt(7, 3, Piece(PieceType::QUEEN, PieceColor::BLACK));
-    theBoard.setPieceAt(7, 4, Piece(PieceType::KING, PieceColor::BLACK));
-    theBoard.setPieceAt(7, 5, Piece(PieceType::BISHOP, PieceColor::BLACK));
-    theBoard.setPieceAt(7, 6, Piece(PieceType::KNIGHT, PieceColor::BLACK));
-    theBoard.setPieceAt(7, 7, Piece(PieceType::ROOK, PieceColor::BLACK));
+    theBoard.setPieceAt(0, 7, Piece(PieceType::ROOK, PieceColor::WHITE));
+    theBoard.setPieceAt(1, 7, Piece(PieceType::KNIGHT, PieceColor::WHITE));
+    theBoard.setPieceAt(2, 7, Piece(PieceType::BISHOP, PieceColor::WHITE));
+    theBoard.setPieceAt(3, 7, Piece(PieceType::QUEEN, PieceColor::WHITE));
+    theBoard.setPieceAt(4, 7, Piece(PieceType::KING, PieceColor::WHITE));
+    theBoard.setPieceAt(5, 7, Piece(PieceType::BISHOP, PieceColor::WHITE));
+    theBoard.setPieceAt(6, 7, Piece(PieceType::KNIGHT, PieceColor::WHITE));
+    theBoard.setPieceAt(7, 7, Piece(PieceType::ROOK, PieceColor::WHITE));
 
 }

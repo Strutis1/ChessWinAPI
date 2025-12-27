@@ -14,5 +14,6 @@ using namespace Gdiplus;
 using namespace Gdiplus;
 
 Image *LoadPngFromResource(HINSTANCE hInst, int resourceID);
+int min(int a, int b);
 
 #endif
