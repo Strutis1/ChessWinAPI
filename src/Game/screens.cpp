@@ -10,6 +10,8 @@ Button playButton;
 Button loadButton;
 Button settingsButton;
 Button exitButton;
+Button retryButton;
+Button goExitButton;
 
 static int RectW(const RECT& r) { return r.right - r.left; }
 static int RectH(const RECT& r) { return r.bottom - r.top; }
@@ -212,6 +214,30 @@ void drawMainMenu(HWND hwnd, HDC hdc)
     DrawCenteredText(g, rExit, L"Exit", labelSize, true);
 }
 
+static void LayoutGameOverButtons(HWND hwnd)
+{
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+
+    int w = rc.right;
+    int h = rc.bottom;
+
+    int btnW = (int)(w * 0.30);
+    int btnH = (int)(h * 0.08);
+
+    if (btnW < 220) btnW = 220;
+    if (btnH < 52)  btnH = 52;
+
+    int btnX = (w - btnW) / 2;
+    int gap  = (int)(h * 0.02);
+    if (gap < 12) gap = 12;
+
+    int startY = (int)(h * 0.55f);
+
+    retryButton.init(nullptr, btnX, startY, btnW, btnH);
+    goExitButton.init(nullptr, btnX, startY + btnH + gap, btnW, btnH);
+}
+
 
 void drawGameScreen(HWND hwnd, HDC hdc)
 {
@@ -238,8 +264,81 @@ void drawGameScreen(HWND hwnd, HDC hdc)
 void drawGameOver(HWND hwnd, HDC hdc)
 {
     Gdiplus::Graphics g(hdc);
+    g.SetSmoothingMode(Gdiplus::SmoothingModeHighQuality);
+    g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHighQuality);
+    g.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBilinear);
+    g.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
+    g.SetCompositingQuality(Gdiplus::CompositingQualityHighQuality);
+
     RECT rc;
     GetClientRect(hwnd, &rc);
+
+    if (gAssets.mainmenuBg)
+    {
+        g.DrawImage(gAssets.mainmenuBg, 0, 0, rc.right, rc.bottom);
+    }
+    else if (gAssets.woodmenuBg)
+    {
+        g.DrawImage(gAssets.woodmenuBg, 0, 0, rc.right, rc.bottom);
+    }
+    else
+    {
+        Gdiplus::SolidBrush bgFill(Gdiplus::Color(255, 25, 25, 25));
+        g.FillRectangle(&bgFill, Gdiplus::RectF(0, 0, (Gdiplus::REAL)RectW(rc), (Gdiplus::REAL)RectH(rc)));
+    }
+
+    // Dim overlay to separate from board
+    {
+        Gdiplus::SolidBrush overlay(Gdiplus::Color(180, 0, 0, 0));
+        g.FillRectangle(&overlay, Gdiplus::RectF(0, 0, (Gdiplus::REAL)RectW(rc), (Gdiplus::REAL)RectH(rc)));
+    }
+
+    LayoutGameOverButtons(hwnd);
+
+    RECT titleRect{
+        0,
+        (int)(rc.bottom * 0.12f),
+        rc.right,
+        (int)(rc.bottom * 0.32f)
+    };
+
+    float titleSize = (float)(rc.bottom * 0.10f);
+    if (titleSize < 40.0f) titleSize = 40.0f;
+    if (titleSize > 96.0f) titleSize = 96.0f;
+    DrawCenteredText(g, titleRect, L"Game Over", titleSize, true);
+
+    std::wstring resultText;
+    PieceColor winner = chessGame.getWinner();
+    if (winner == PieceColor::WHITE)
+        resultText = L"White wins by checkmate";
+    else if (winner == PieceColor::BLACK)
+        resultText = L"Black wins by checkmate";
+    else
+        resultText = L"Draw (stalemate)";
+
+    RECT infoRect{
+        0,
+        (int)(rc.bottom * 0.34f),
+        rc.right,
+        (int)(rc.bottom * 0.46f)
+    };
+
+    float infoSize = (float)(rc.bottom * 0.05f);
+    if (infoSize < 22.0f) infoSize = 22.0f;
+    if (infoSize > 48.0f) infoSize = 48.0f;
+    DrawCenteredText(g, infoRect, resultText.c_str(), infoSize, false);
+
+    retryButton.draw(g);
+    goExitButton.draw(g);
+
+    float labelSize = (float)((retryButton.rect.bottom - retryButton.rect.top) * 0.45f);
+    if (labelSize < 18.0f) labelSize = 18.0f;
+
+    RECT rRetry = GetVisualRect(retryButton);
+    RECT rExit  = GetVisualRect(goExitButton);
+
+    DrawCenteredText(g, rRetry, L"Retry", labelSize, true);
+    DrawCenteredText(g, rExit,  L"Exit", labelSize, true);
 }
 
 

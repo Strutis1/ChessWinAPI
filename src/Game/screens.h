@@ -19,6 +19,7 @@ struct Button
 };
 
 extern Button playButton, loadButton, settingsButton, exitButton;
+extern Button retryButton, goExitButton;
 
 void drawMainMenu(HWND hwnd, HDC hdc);   // menu, button, background
 void drawGameScreen(HWND hwnd, HDC hdc); // board, background, pieces

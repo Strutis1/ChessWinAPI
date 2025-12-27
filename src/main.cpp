@@ -146,6 +146,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (PtInRect(&playButton.rect, pt))
             {
+                chessGame.init();
                 appState.currentScreen = GameScreen::Playing;
                 InvalidateRect(hwnd, NULL, TRUE);
             }
@@ -199,6 +200,23 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
         }
         else if(appState.currentScreen == GameScreen::GameOver){
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+
+            if (PtInRect(&retryButton.rect, pt))
+            {
+                chessGame.init();
+                appState.currentScreen = GameScreen::Playing;
+                InvalidateRect(hwnd, NULL, TRUE);
+                return 0;
+            }
+            else if (PtInRect(&goExitButton.rect, pt))
+            {
+                chessGame.init();
+                appState.currentScreen = GameScreen::MainMenu;
+                InvalidateRect(hwnd, NULL, TRUE);
+                return 0;
+            }
+
             return 0;
         }
     }
@@ -206,10 +224,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_MOUSEMOVE:
     {
         POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-        playButton.onHover(hwnd, PtInRect(&playButton.rect, pt));
-        loadButton.onHover(hwnd, PtInRect(&loadButton.rect, pt));
-        settingsButton.onHover(hwnd, PtInRect(&settingsButton.rect, pt));
-        exitButton.onHover(hwnd, PtInRect(&exitButton.rect, pt));
+
+        switch (appState.currentScreen)
+        {
+        case GameScreen::MainMenu:
+            playButton.onHover(hwnd, PtInRect(&playButton.rect, pt));
+            loadButton.onHover(hwnd, PtInRect(&loadButton.rect, pt));
+            settingsButton.onHover(hwnd, PtInRect(&settingsButton.rect, pt));
+            exitButton.onHover(hwnd, PtInRect(&exitButton.rect, pt));
+            break;
+        case GameScreen::GameOver:
+            retryButton.onHover(hwnd, PtInRect(&retryButton.rect, pt));
+            goExitButton.onHover(hwnd, PtInRect(&goExitButton.rect, pt));
+            break;
+        default:
+            break;
+        }
         return 0;
     }
 

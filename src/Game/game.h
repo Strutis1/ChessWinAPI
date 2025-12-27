@@ -16,6 +16,13 @@ private:
     int selectedX;
     int selectedY;
 
+    PieceColor winner;
+
+    bool isPseudoLegalMove(const Board& board, const Move& move) const;
+    bool isInCheck(const Board& board, PieceColor kingColor) const;
+    bool findKing(const Board& board, PieceColor kingColor, int& outX, int& outY) const;
+
+
 public:
 
 
@@ -27,6 +34,9 @@ public:
     bool loadGame();
     bool isCheck();
     bool isMate();
+    bool getObstructionFreeMove(const Board& board, const Move& move) const;
+    bool isValidPieceMovement(const Board& board, const Move& move) const;
+    bool stalemate();
     void switchTurn();
     void endGame();
 
@@ -46,6 +56,8 @@ public:
     int getSelectedPosY() const { return selectedY; };
     PieceColor getCurrentTurn() const { return currentTurn; }
     const Board& getBoard() const { return theBoard; }
+    PieceColor getWinner() const { return winner; }
+    bool isGameOver() const { return gameOver; }
 
 
 
