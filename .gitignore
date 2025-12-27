@@ -1,0 +1,28 @@
+Chess.exe
+*.exe
+*.dll
+*.obj
+*.o
+*.ilk
+*.pdb
+*.idb
+*.log
+*.tlog
+
+# Debug/
+# Release/
+# x64/
+# x86/
+# build/
+
+.vs/
+*.VC.db
+*.VC.opendb
+*.ipch
+
+.vscode/
+
+Thumbs.db
+Desktop.ini
+
+*.dmp

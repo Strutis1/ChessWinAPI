@@ -1,25 +1,50 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <windows.h>
+#include "../Classes/board.h"
+#include "../Classes/piece.h"
+#include "../Classes/move.h"
 
-enum class GameScreen
-{
-    MainMenu,
-    Playing,
-    GameOver
-};
 
-struct GameState
+class ChessGame
 {
-    GameScreen currentScreen;
-    bool running;
-    bool hasUnfinishedGame = false;
+private:
+    PieceColor currentTurn;
+    Piece currentSelected;
+    bool gameOver;
+    Board theBoard;
+
+public:
+
 
     void init();
-    void changeScreen(GameScreen newScreen);
+    bool isLegalMove(const Move& move);
+    void makeMove(const Move& move);
+    void checkGameOver();
+    bool saveGame();
+    bool loadGame();
+    bool isCheck();
+    bool isMate();
+    void switchTurn();
+    void endGame();
+
+    void setTheBoardUp();
+
+
+    Piece detectSelection(int x, int y);
+
+    void setSelectedPiece(const Piece& piece) { currentSelected = piece; };
+
+
+    Piece getSelectedPiece() const { return currentSelected; };
+    PieceColor getCurrentTurn() const { return currentTurn; }
+    const Board& getBoard() const { return theBoard; }
+
+
+
 };
 
-extern GameState gameState;
+extern ChessGame chessGame;
+
 
 #endif

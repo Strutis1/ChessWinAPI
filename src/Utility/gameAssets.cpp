@@ -31,11 +31,11 @@ void GameAssets::load(HINSTANCE hInst)
     blackBishop = LoadPngFromResource(hInst, IDB_PIECES_BBISHOP);
 
     // Boards
-    boardPlain1 = LoadPngFromResource(hInst, IDB_BOARDS_PLAIN1);
-    boardPlain2 = LoadPngFromResource(hInst, IDB_BOARDS_PLAIN2);
-    boardPlain3 = LoadPngFromResource(hInst, IDB_BOARDS_PLAIN3);
-    boardPlain4 = LoadPngFromResource(hInst, IDB_BOARDS_PLAIN4);
-    boardPlain5 = LoadPngFromResource(hInst, IDB_BOARDS_PLAIN5);
+    // boardPlain1 = LoadPngFromResource(hInst, IDB_BOARDS_PLAIN1);
+    // boardPlain2 = LoadPngFromResource(hInst, IDB_BOARDS_PLAIN2);
+    // boardPlain3 = LoadPngFromResource(hInst, IDB_BOARDS_PLAIN3);
+    // boardPlain4 = LoadPngFromResource(hInst, IDB_BOARDS_PLAIN4);
+    // boardPlain5 = LoadPngFromResource(hInst, IDB_BOARDS_PLAIN5);
 }
 
 void GameAssets::unload()
@@ -60,9 +60,9 @@ void GameAssets::unload()
     delete blackKnight;
     delete blackBishop;
 
-    delete boardPlain1;
-    delete boardPlain2;
-    delete boardPlain3;
-    delete boardPlain4;
-    delete boardPlain5;
+    // delete boardPlain1;
+    // delete boardPlain2;
+    // delete boardPlain3;
+    // delete boardPlain4;
+    // delete boardPlain5;
 }

@@ -7,10 +7,13 @@
 #include "Utility/gameAssets.h"
 #include "Game/screens.h"
 #include "Game/game.h"
+#include "Game/appState.h"
 
 HINSTANCE hInst;
 
-GameState gameState;
+AppState appState;
+ChessGame chessGame;
+BoardLayout currentBoardLayout;
 
 static HDC     gBackDC   = NULL;
 static HBITMAP gBackBmp  = NULL;
@@ -68,10 +71,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
     {
-        gameState.init();
+        appState.init();
         gAssets.load(((LPCREATESTRUCT)lParam)->hInstance);
 
         CreateBackBuffer(hwnd);
+        updateBoardLayout(hwnd);
 
         SetTimer(hwnd, Timer::GameLoop, 1000 / FPS, NULL);
         return 0;
@@ -79,6 +83,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     case WM_SIZE:
     {
+        updateBoardLayout(hwnd);
+
         CreateBackBuffer(hwnd);
         InvalidateRect(hwnd, NULL, TRUE);
         return 0;
@@ -87,7 +93,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_TIMER:
         if (wParam == Timer::GameLoop)
         {
-            if (gameState.currentScreen == GameScreen::Playing)
+            if (appState.currentScreen == GameScreen::Playing)
                 InvalidateRect(hwnd, NULL, FALSE);
         }
         return 0;
@@ -108,7 +114,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             FillRect(gBackDC, &rc, bg);
             DeleteObject(bg);
 
-            switch (gameState.currentScreen)
+            switch (appState.currentScreen)
             {
             case GameScreen::MainMenu:
                 drawMainMenu(hwnd, gBackDC);
@@ -134,31 +140,41 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
-        
-        POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+        if(appState.currentScreen == GameScreen::MainMenu){
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
-        if (PtInRect(&playButton.rect, pt))
-        {
-            gameState.currentScreen = GameScreen::Playing;
-            InvalidateRect(hwnd, NULL, TRUE);
-        }
-        else if (PtInRect(&loadButton.rect, pt))
+            if (PtInRect(&playButton.rect, pt))
             {
-                if (!loadButton.disabled)
-                {
-                    gameState.currentScreen = GameScreen::Playing;
-                    InvalidateRect(hwnd, NULL, TRUE);
-                }
+                appState.currentScreen = GameScreen::Playing;
+                InvalidateRect(hwnd, NULL, TRUE);
             }
-        else if (PtInRect(&settingsButton.rect, pt))
-        {
-            // Settings not implemented yet
+            else if (PtInRect(&loadButton.rect, pt))
+                {
+                    if (!loadButton.disabled)
+                    {
+                        appState.currentScreen = GameScreen::Playing;
+                        InvalidateRect(hwnd, NULL, TRUE);
+                    }
+                }
+            else if (PtInRect(&settingsButton.rect, pt))
+            {
+                // Settings not implemented yet
+            }
+            else if (PtInRect(&exitButton.rect, pt))
+            {
+                PostMessage(hwnd, WM_CLOSE, 0, 0);
+            }
+            return 0;
         }
-        else if (PtInRect(&exitButton.rect, pt))
-        {
-            PostMessage(hwnd, WM_CLOSE, 0, 0);
+        else if(appState.currentScreen == GameScreen::Playing){
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+            Piece selectedPiece = chessGame.detectSelection(pt.x, pt.y);
+            chessGame.setSelectedPiece(selectedPiece);  
+            return 0;
         }
-        return 0;
+        else if(appState.currentScreen == GameScreen::GameOver){
+            return 0;
+        }
     }
 
     case WM_MOUSEMOVE:
@@ -175,7 +191,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         KillTimer(hwnd, Timer::GameLoop);
         gAssets.unload();
         DestroyBackBuffer();
-        gameState.running = false;
+        appState.running = false;
         PostQuitMessage(0);
         return 0;
     }

@@ -7,6 +7,14 @@ namespace Window
     constexpr int Width = 1080;
 }
 
+namespace BoardUI
+{
+
+    constexpr int BoardCols  = 8;
+    constexpr int BoardRows  = 8;
+}
+
+
 namespace Menu
 {
     constexpr int FileNew = 1;
@@ -53,14 +61,14 @@ namespace Resources
         constexpr int Bishop = 306;
     }
 
-    namespace Boards
-    {
-        constexpr int Plain1 = 401;
-        constexpr int Plain2 = 402;
-        constexpr int Plain3 = 403;
-        constexpr int Plain4 = 404;
-        constexpr int Plain5 = 405;
-    }
+    // namespace Boards
+    // {
+    //     constexpr int Plain1 = 401;
+    //     constexpr int Plain2 = 402;
+    //     constexpr int Plain3 = 403;
+    //     constexpr int Plain4 = 404;
+    //     constexpr int Plain5 = 405;
+    // }
 
     constexpr int IconMain = 501;
 }

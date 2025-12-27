@@ -30,11 +30,11 @@ struct GameAssets
     Image *blackBishop;
 
     // Boards
-    Image *boardPlain1;
-    Image *boardPlain2;
-    Image *boardPlain3;
-    Image *boardPlain4;
-    Image *boardPlain5;
+    // Image *boardPlain1;
+    // Image *boardPlain2;
+    // Image *boardPlain3;
+    // Image *boardPlain4;
+    // Image *boardPlain5;
 
     void load(HINSTANCE hInst);
     void unload();

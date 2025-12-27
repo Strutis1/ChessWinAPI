@@ -1,7 +1,7 @@
 #include "screens.h"
 #include "../Utility/constants.h"
 #include "../Utility/gameAssets.h"
-#include "game.h"
+#include "appState.h"
 #include <string>
 
 Button playButton;
@@ -160,7 +160,7 @@ void drawMainMenu(HWND hwnd, HDC hdc)
     GetClientRect(hwnd, &rc);
 
     LayoutMainMenuButtons(hwnd);
-    loadButton.disabled = !gameState.hasUnfinishedGame;
+    loadButton.disabled = !appState.hasUnfinishedGame;
 
     if(gAssets.mainmenuBg)
     {
@@ -216,6 +216,7 @@ void drawGameScreen(HWND hwnd, HDC hdc)
     Gdiplus::Graphics graphics(hdc);
     RECT rc;
     GetClientRect(hwnd, &rc);
+    drawBoard(hwnd, graphics, currentBoardLayout);
 }
 
 void drawGameOver(HWND hwnd, HDC hdc)
@@ -223,4 +224,55 @@ void drawGameOver(HWND hwnd, HDC hdc)
     Gdiplus::Graphics graphics(hdc);
     RECT rc;
     GetClientRect(hwnd, &rc);
+}
+
+
+void updateBoardLayout(HWND hwnd)
+{
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+
+    int w = rc.right - rc.left;
+    int h = rc.bottom - rc.top;
+
+    int sizeByWidth  = w / BoardUI::BoardCols;
+    int sizeByHeight = h / BoardUI::BoardRows;
+    int squareSize = (sizeByWidth < sizeByHeight) ? sizeByWidth : sizeByHeight;
+
+    int boardW = squareSize * BoardUI::BoardCols;
+    int boardH = squareSize * BoardUI::BoardRows;
+
+    int originX = (w - boardW) / 2;
+    int originY = (h - boardH) / 2;
+
+    currentBoardLayout = BoardLayout(originX, originY, squareSize);
+}
+
+void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
+{
+    for (int row = 0; row < BoardUI::BoardRows; ++row)
+    {
+        for (int col = 0; col < BoardUI::BoardCols; ++col)
+        {
+            bool isLightSquare = ((row + col) % 2 == 0);
+            Gdiplus::Color squareColor = isLightSquare ? Gdiplus::Color(255, 240, 217, 181)
+                                                      : Gdiplus::Color(255, 181, 136, 99);
+
+            Gdiplus::SolidBrush brush(squareColor);
+
+            int x = layout.originX + col * layout.squareSize;
+            int y = layout.originY + row * layout.squareSize;
+
+            Gdiplus::RectF squareRect((Gdiplus::REAL)x, (Gdiplus::REAL)y,
+                                      (Gdiplus::REAL)layout.squareSize, (Gdiplus::REAL)layout.squareSize);
+
+            g.FillRectangle(&brush, squareRect);
+        }
+    }
+}
+
+bool pointInBoard(const BoardLayout& layout, int x, int y)
+{
+    return (x >= layout.originX && x < layout.originX + layout.width() &&
+            y >= layout.originY && y < layout.originY + layout.height());
 }
