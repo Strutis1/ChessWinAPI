@@ -73,6 +73,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         appState.init();
         chessGame.init();
+        chessGame.checkForSavedGame();
         gAssets.load(((LPCREATESTRUCT)lParam)->hInstance);
 
         CreateBackBuffer(hwnd);
@@ -136,8 +137,36 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_SETCURSOR:
+    {
         SetCursor(LoadCursor(NULL, IDC_ARROW));
-        return TRUE;
+
+        POINT pt;
+        if (GetCursorPos(&pt) && ScreenToClient(hwnd, &pt))
+        {
+            if (appState.currentScreen == GameScreen::MainMenu) {
+                if (PtInRect(&playButton.rect, pt) ||
+                    PtInRect(&loadButton.rect, pt) ||
+                    PtInRect(&settingsButton.rect, pt) ||
+                    PtInRect(&exitButton.rect, pt)) {
+                    SetCursor(LoadCursor(NULL, IDC_HAND));
+                    return TRUE;
+                }
+            } else if (appState.currentScreen == GameScreen::Playing) {
+                if (pointInBoard(currentBoardLayout, pt.x, pt.y)) {
+                    SetCursor(LoadCursor(NULL, IDC_HAND));
+                    return TRUE;
+                }
+            } else if (appState.currentScreen == GameScreen::GameOver) {
+                if (PtInRect(&retryButton.rect, pt) || PtInRect(&goExitButton.rect, pt)) {
+                    SetCursor(LoadCursor(NULL, IDC_HAND));
+                    return TRUE;
+                }
+            }
+        }
+        return TRUE; 
+    }
+
+
 
     case WM_LBUTTONDOWN:
     {
@@ -154,6 +183,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 {
                     if (!loadButton.disabled)
                     {
+                        chessGame.loadGame();
                         appState.currentScreen = GameScreen::Playing;
                         InvalidateRect(hwnd, NULL, TRUE);
                     }
@@ -244,12 +274,24 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_DESTROY:
+    {
+        // Only save if a game is in progress; avoid overwriting an existing save
+        // when the user quits directly from menus or after finishing a game.
+        if (appState.currentScreen == GameScreen::Playing && chessGame.isGameOver() == false && chessGame.hasDirtyState()) {
+            if (chessGame.saveGame()) {
+                appState.hasUnfinishedGame = true;
+            }
+        }
         KillTimer(hwnd, Timer::GameLoop);
         gAssets.unload();
         DestroyBackBuffer();
         appState.running = false;
         PostQuitMessage(0);
         return 0;
+    }
+
+    default:
+        break;
     }
 
     return DefWindowProcW(hwnd, uMsg, wParam, lParam);

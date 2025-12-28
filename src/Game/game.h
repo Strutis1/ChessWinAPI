@@ -4,6 +4,10 @@
 #include "../Classes/board.h"
 #include "../Classes/piece.h"
 #include "../Classes/move.h"
+#include "screens.h"
+#include "appState.h"
+#include "../Utility/saveLoad.h"
+
 
 
 class ChessGame
@@ -15,6 +19,7 @@ private:
     Board theBoard;
     int selectedX;
     int selectedY;
+    bool hasUnsavedChanges = false;
 
     PieceColor winner;
 
@@ -30,6 +35,7 @@ public:
     bool isLegalMove(const Move& move);
     void makeMove(const Move& move);
     void checkGameOver();
+    void checkForSavedGame();
     bool saveGame();
     bool loadGame();
     bool isCheck();
@@ -58,6 +64,7 @@ public:
     const Board& getBoard() const { return theBoard; }
     PieceColor getWinner() const { return winner; }
     bool isGameOver() const { return gameOver; }
+    bool hasDirtyState() const { return hasUnsavedChanges; }
 
 
 

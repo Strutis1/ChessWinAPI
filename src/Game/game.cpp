@@ -1,24 +1,6 @@
 #include "game.h"
-#include "../Classes/piece.h"
-#include "screens.h"
-#include "appState.h"
 
-bool ChessGame::findKing(const Board& board, PieceColor kingColor, int& outX, int& outY) const
-{
-    for (int y = 0; y < 8; ++y)
-    {
-        for (int x = 0; x < 8; ++x)
-        {
-            Piece p = board.getPieceAt(x, y);
-            if (p.type == PieceType::KING && p.color == kingColor)
-            {
-                outX = x; outY = y;
-                return true;
-            }
-        }
-    }
-    return false;
-}
+
 
 
 void ChessGame::init()
@@ -29,6 +11,7 @@ void ChessGame::init()
     setTheBoardUp();
     selectedX = -1;
     selectedY = -1;
+    hasUnsavedChanges = false;
 
     winner = PieceColor::NONE;
 }
@@ -61,6 +44,7 @@ void ChessGame::makeMove(const Move& move)
         theBoard.movePiece(move.fromX, move.fromY, move.toX, move.toY);
         switchTurn();
         checkGameOver();
+        hasUnsavedChanges = true;
     }
 }
 void ChessGame::checkGameOver()
@@ -85,21 +69,129 @@ void ChessGame::checkGameOver()
 
     if (gameOver)
     {
+        appState.hasUnfinishedGame = false;
         appState.currentScreen = GameScreen::GameOver;
     }
+}
+
+
+void ChessGame::checkForSavedGame()
+{
+    std::ifstream in(kSaveFile);
+    if (!in) { appState.hasUnfinishedGame = false; return; }
+
+    std::string content((std::istreambuf_iterator<char>(in)), {});
+    bool ok = content.find("\"formatVersion\"") != std::string::npos &&
+              content.find("\"turn\"") != std::string::npos &&
+              content.find("\"board\"") != std::string::npos;
+    appState.hasUnfinishedGame = ok;
 }
 
  
 bool ChessGame::saveGame()
 {
-    // Placeholder for saving game state
+    std::ofstream out(kSaveFile, std::ios::trunc);
+    if (!out) return false;
+
+    out << "{\n";
+    out << "  \"formatVersion\": 1,\n";
+    out << "  \"turn\": \"" << (currentTurn == PieceColor::WHITE ? "white" : "black") << "\",\n";
+    out << "  \"board\": [\n";
+    for (int y = 0; y < 8; ++y) {
+        out << "    [";
+        for (int x = 0; x < 8; ++x) {
+            out << "\"" << pieceToCode(theBoard.getPieceAt(x, y)) << "\"";
+            if (x < 7) out << ",";
+        }
+        out << "]";
+        if (y < 7) out << ",";
+        out << "\n";
+    }
+    out << "  ]\n";
+    out << "}\n";
+
+    appState.hasUnfinishedGame = true;
+    hasUnsavedChanges = false;
     return true;
 }
+
+
 bool ChessGame::loadGame()
 {
-    // Placeholder for loading game state
+    std::ifstream in(kSaveFile);
+    if (!in) return false;
+
+    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+
+    auto getString = [&](const std::string& key, std::string& out) -> bool {
+        size_t kpos = content.find("\"" + key + "\"");
+        if (kpos == std::string::npos) return false;
+        size_t first = content.find('"', content.find(':', kpos));
+        if (first == std::string::npos) return false;
+        size_t second = content.find('"', first + 1);
+        if (second == std::string::npos) return false;
+        out = content.substr(first + 1, second - first - 1);
+        return true;
+    };
+
+    std::string turnStr;
+    if (!getString("turn", turnStr)) return false;
+    PieceColor loadedTurn = (turnStr == "white") ? PieceColor::WHITE :
+                            (turnStr == "black") ? PieceColor::BLACK : PieceColor::NONE;
+    if (loadedTurn == PieceColor::NONE) return false;
+
+    size_t boardPos = content.find("\"board\"");
+    if (boardPos == std::string::npos) return false;
+    size_t idx = content.find('[', boardPos);
+    if (idx == std::string::npos) return false;
+
+    std::vector<std::string> codes;
+    while (idx < content.size() && codes.size() < 64) {
+        size_t q1 = content.find('"', idx);
+        if (q1 == std::string::npos) break;
+        size_t q2 = content.find('"', q1 + 1);
+        if (q2 == std::string::npos) break;
+        std::string token = content.substr(q1 + 1, q2 - q1 - 1);
+        if (token.size() == 2) codes.push_back(token);
+        idx = q2 + 1;
+    }
+    if (codes.size() != 64) return false;
+
+    for (int y = 0; y < 8; ++y) {
+        for (int x = 0; x < 8; ++x) {
+            theBoard.setPieceAt(x, y, codeToPiece(codes[y * 8 + x]));
+        }
+    }
+
+    currentTurn = loadedTurn;
+    gameOver = false;
+    winner = PieceColor::NONE;
+    selectedX = -1;
+    selectedY = -1;
+    appState.hasUnfinishedGame = true;
+    hasUnsavedChanges = false;
     return true;
 }
+
+
+
+bool ChessGame::findKing(const Board& board, PieceColor kingColor, int& outX, int& outY) const
+{
+    for (int y = 0; y < 8; ++y)
+    {
+        for (int x = 0; x < 8; ++x)
+        {
+            Piece p = board.getPieceAt(x, y);
+            if (p.type == PieceType::KING && p.color == kingColor)
+            {
+                outX = x; outY = y;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 bool ChessGame::isCheck()
 {
     return isInCheck(theBoard, currentTurn);

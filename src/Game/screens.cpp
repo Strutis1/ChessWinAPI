@@ -370,6 +370,20 @@ void updateBoardLayout(HWND hwnd)
 
 void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
 {
+    float coordFontSize = (float)(layout.squareSize * 0.22f);
+    if (coordFontSize < 10.0f) coordFontSize = 10.0f;
+
+    Gdiplus::FontFamily coordFontFamily(L"Segoe UI");
+    Gdiplus::Font coordFont(&coordFontFamily, coordFontSize, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
+
+    Gdiplus::StringFormat fileFormat;
+    fileFormat.SetAlignment(Gdiplus::StringAlignmentCenter);
+    fileFormat.SetLineAlignment(Gdiplus::StringAlignmentNear);
+
+    Gdiplus::StringFormat rankFormat;
+    rankFormat.SetAlignment(Gdiplus::StringAlignmentCenter);
+    rankFormat.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+
     for (int row = 0; row < BoardUI::BoardRows; ++row)
     {
         for (int col = 0; col < BoardUI::BoardCols; ++col)
@@ -433,6 +447,86 @@ void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
                 }
             }
         }
+    }
+
+    // draw file letters (a-h) above and below the board
+    Gdiplus::SolidBrush labelBrush(Gdiplus::Color(255, 230, 230, 230));
+    Gdiplus::REAL topY    = (Gdiplus::REAL)(layout.originY - coordFontSize - 6.0f);
+    Gdiplus::REAL bottomY = (Gdiplus::REAL)(layout.originY + layout.height() + 2.0f);
+
+    for (int col = 0; col < BoardUI::BoardCols; ++col)
+    {
+        wchar_t fileText[2] = { (wchar_t)(L'a' + col), L'\0' };
+
+        Gdiplus::RectF topRect(
+            (Gdiplus::REAL)(layout.originX + col * layout.squareSize),
+            topY,
+            (Gdiplus::REAL)layout.squareSize,
+            (Gdiplus::REAL)(coordFontSize + 8.0f));
+
+        Gdiplus::RectF bottomRect(
+            (Gdiplus::REAL)(layout.originX + col * layout.squareSize),
+            bottomY,
+            (Gdiplus::REAL)layout.squareSize,
+            (Gdiplus::REAL)(coordFontSize + 8.0f));
+
+        g.DrawString(fileText, -1, &coordFont, bottomRect, &fileFormat, &labelBrush);
+
+        // flip the top file to face the opposite player
+        Gdiplus::GraphicsState state = g.Save();
+        Gdiplus::REAL centerX = topRect.X + topRect.Width * 0.5f;
+        Gdiplus::REAL centerY = topRect.Y + topRect.Height * 0.5f;
+        g.TranslateTransform(centerX, centerY);
+        g.RotateTransform(180.0f);
+
+        Gdiplus::RectF rotatedTop(
+            -topRect.Width * 0.5f,
+            -topRect.Height * 0.5f,
+            topRect.Width,
+            topRect.Height);
+
+        g.DrawString(fileText, -1, &coordFont, rotatedTop, &fileFormat, &labelBrush);
+        g.Restore(state);
+    }
+
+    // draw rank numbers (1-8) on the sides, from White's perspective
+    Gdiplus::REAL leftX  = (Gdiplus::REAL)(layout.originX - coordFontSize - 8.0f);
+    Gdiplus::REAL rightX = (Gdiplus::REAL)(layout.originX + layout.width() + 4.0f);
+
+    for (int row = 0; row < BoardUI::BoardRows; ++row)
+    {
+        int rank = BoardUI::BoardRows - row;
+        wchar_t rankText[2] = { (wchar_t)(L'0' + rank), L'\0' };
+
+        Gdiplus::RectF leftRect(
+            leftX,
+            (Gdiplus::REAL)(layout.originY + row * layout.squareSize),
+            (Gdiplus::REAL)(coordFontSize + 10.0f),
+            (Gdiplus::REAL)layout.squareSize);
+
+        Gdiplus::RectF rightRect(
+            rightX,
+            (Gdiplus::REAL)(layout.originY + row * layout.squareSize),
+            (Gdiplus::REAL)(coordFontSize + 10.0f),
+            (Gdiplus::REAL)layout.squareSize);
+
+        g.DrawString(rankText, -1, &coordFont, leftRect, &rankFormat, &labelBrush);
+        
+        // flip the right-side rank to face the opposite player
+        Gdiplus::GraphicsState state = g.Save();
+        Gdiplus::REAL centerX = rightRect.X + rightRect.Width * 0.5f;
+        Gdiplus::REAL centerY = rightRect.Y + rightRect.Height * 0.5f;
+        g.TranslateTransform(centerX, centerY);
+        g.RotateTransform(180.0f);
+
+        Gdiplus::RectF rotatedRect(
+            -rightRect.Width * 0.5f,
+            -rightRect.Height * 0.5f,
+            rightRect.Width,
+            rightRect.Height);
+
+        g.DrawString(rankText, -1, &coordFont, rotatedRect, &rankFormat, &labelBrush);
+        g.Restore(state);
     }
 }
 
