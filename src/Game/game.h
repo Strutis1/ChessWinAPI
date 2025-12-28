@@ -4,11 +4,9 @@
 #include "../Classes/board.h"
 #include "../Classes/piece.h"
 #include "../Classes/move.h"
-#include "screens.h"
-#include "appState.h"
 #include "../Utility/saveLoad.h"
 
-
+//TODO: enpessant, castling, promotion
 
 class ChessGame
 {

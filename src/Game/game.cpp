@@ -1,5 +1,6 @@
 #include "game.h"
-
+#include "screens.h"
+#include "appState.h"
 
 
 
@@ -96,6 +97,7 @@ bool ChessGame::saveGame()
     out << "{\n";
     out << "  \"formatVersion\": 1,\n";
     out << "  \"turn\": \"" << (currentTurn == PieceColor::WHITE ? "white" : "black") << "\",\n";
+    out << "  \"difficulty\": \"" << appState.currentDifficulty << "\",\n";
     out << "  \"board\": [\n";
     for (int y = 0; y < 8; ++y) {
         out << "    [";
@@ -140,6 +142,9 @@ bool ChessGame::loadGame()
                             (turnStr == "black") ? PieceColor::BLACK : PieceColor::NONE;
     if (loadedTurn == PieceColor::NONE) return false;
 
+    std::string difficultyStr = "sillyBot";
+    getString("difficulty", difficultyStr); 
+
     size_t boardPos = content.find("\"board\"");
     if (boardPos == std::string::npos) return false;
     size_t idx = content.find('[', boardPos);
@@ -169,6 +174,7 @@ bool ChessGame::loadGame()
     selectedX = -1;
     selectedY = -1;
     appState.hasUnfinishedGame = true;
+    appState.currentDifficulty = difficultyStr;
     hasUnsavedChanges = false;
     return true;
 }

@@ -12,6 +12,8 @@ Button settingsButton;
 Button exitButton;
 Button retryButton;
 Button goExitButton;
+Button sillyBotButton;
+Button backButton;
 
 static int RectW(const RECT& r) { return r.right - r.left; }
 static int RectH(const RECT& r) { return r.bottom - r.top; }
@@ -71,6 +73,31 @@ static RECT GetVisualRect(const Button& b)
     return r;
 }
  
+static std::wstring ToWString(const std::string& s)
+{
+    return std::wstring(s.begin(), s.end());
+}
+
+static void DrawRotatedText(Gdiplus::Graphics& g, const wchar_t* text, const Gdiplus::Font& font,
+                            const Gdiplus::RectF& rect, const Gdiplus::StringFormat& fmt,
+                            const Gdiplus::Brush& brush, float angle)
+{
+    Gdiplus::GraphicsState state = g.Save();
+    Gdiplus::REAL centerX = rect.X + rect.Width * 0.5f;
+    Gdiplus::REAL centerY = rect.Y + rect.Height * 0.5f;
+    g.TranslateTransform(centerX, centerY);
+    g.RotateTransform(angle);
+
+    Gdiplus::RectF rotatedRect(
+        -rect.Width * 0.5f,
+        -rect.Height * 0.5f,
+        rect.Width,
+        rect.Height);
+
+    g.DrawString(text, -1, &font, rotatedRect, &fmt, &brush);
+    g.Restore(state);
+}
+
 static void DrawCenteredText(Gdiplus::Graphics& g, const RECT& r, const wchar_t* text, float sizePx, bool bold)
 {
     Gdiplus::RectF rf((Gdiplus::REAL)r.left, (Gdiplus::REAL)r.top,
@@ -134,6 +161,28 @@ static void LayoutMainMenuButtons(HWND hwnd)
     settingsButton.init(nullptr, btnX, startY + 2 * (btnH + gap), btnW, btnH);
     exitButton.init(nullptr, btnX, startY + 3 * (btnH + gap), btnW, btnH);
 
+}
+
+static void LayoutDifficultyButtons(HWND hwnd)
+{
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+    int w = rc.right;
+    int h = rc.bottom;
+
+    int btnW = (int)(w * 0.28);
+    int btnH = (int)(h * 0.08);
+    if (btnW < 220) btnW = 220;
+    if (btnH < 52)  btnH = 52;
+
+    int btnX = (w - btnW) / 2;
+    int gap  = (int)(h * 0.02);
+    if (gap < 12) gap = 12;
+
+    int startY = (int)(h * 0.45f);
+
+    sillyBotButton.init(nullptr, btnX, startY, btnW, btnH);
+    backButton.init(nullptr, btnX, startY + btnH + gap, btnW, btnH);
 }
 
 static void DrawButtonLabel(Gdiplus::Graphics& g, const RECT& r, const wchar_t* text, bool hovered)
@@ -208,10 +257,69 @@ void drawMainMenu(HWND hwnd, HDC hdc)
     RECT rSet  = GetVisualRect(settingsButton);
     RECT rExit = GetVisualRect(exitButton);
 
+    std::wstring contLabel = appState.hasUnfinishedGame
+        ? std::wstring(L"Continue (") + ToWString(appState.currentDifficulty) + L")"
+        : std::wstring(L"Continue");
+
     DrawCenteredText(g, rPlay, L"New Game", labelSize, true);
-    DrawCenteredText(g, rCont, L"Continue", labelSize, true);
+    DrawCenteredText(g, rCont, contLabel.c_str(), labelSize, true);
     DrawCenteredText(g, rSet,  L"Settings", labelSize, true);
     DrawCenteredText(g, rExit, L"Exit", labelSize, true);
+}
+
+void drawDifficultyScreen(HWND hwnd, HDC hdc)
+{
+    Gdiplus::Graphics g(hdc);
+
+    g.SetSmoothingMode(Gdiplus::SmoothingModeHighQuality);
+    g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHighQuality);
+    g.SetInterpolationMode(Gdiplus::InterpolationModeNearestNeighbor);
+
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+
+    if(gAssets.mainmenuBg)
+    {
+        g.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBilinear);
+        g.DrawImage(gAssets.mainmenuBg, 0, 0, rc.right, rc.bottom);
+    }
+    else if(gAssets.woodmenuBg)
+    {
+        g.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBilinear);
+        g.DrawImage(gAssets.woodmenuBg, 0, 0, rc.right, rc.bottom);
+    }
+    else
+    {
+        Gdiplus::SolidBrush bgFill(Gdiplus::Color(255, 30, 30, 30));
+        g.FillRectangle(&bgFill, Gdiplus::RectF(0, 0, (Gdiplus::REAL)RectW(rc), (Gdiplus::REAL)RectH(rc)));
+    }
+
+    RECT titleRect{
+        0,
+        (int)(rc.bottom * 0.12f),
+        rc.right,
+        (int)(rc.bottom * 0.28f)
+    };
+
+    float titleSize = (float)(rc.bottom * 0.07f);
+    if (titleSize < 32.0f) titleSize = 32.0f;
+    if (titleSize > 72.0f) titleSize = 72.0f;
+
+    DrawCenteredText(g, titleRect, L"Select Difficulty", titleSize, true);
+
+    LayoutDifficultyButtons(hwnd);
+
+    sillyBotButton.draw(g);
+    backButton.draw(g);
+
+    float labelSize = (float)((sillyBotButton.rect.bottom - sillyBotButton.rect.top) * 0.45f);
+    if (labelSize < 18.0f) labelSize = 18.0f;
+
+    RECT rSilly  = GetVisualRect(sillyBotButton);
+    RECT rBack   = GetVisualRect(backButton);
+
+    DrawCenteredText(g, rSilly, L"SillyBot", labelSize, true);
+    DrawCenteredText(g, rBack,  L"Back", labelSize, true);
 }
 
 static void LayoutGameOverButtons(HWND hwnd)
@@ -471,22 +579,7 @@ void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
             (Gdiplus::REAL)(coordFontSize + 8.0f));
 
         g.DrawString(fileText, -1, &coordFont, bottomRect, &fileFormat, &labelBrush);
-
-        // flip the top file to face the opposite player
-        Gdiplus::GraphicsState state = g.Save();
-        Gdiplus::REAL centerX = topRect.X + topRect.Width * 0.5f;
-        Gdiplus::REAL centerY = topRect.Y + topRect.Height * 0.5f;
-        g.TranslateTransform(centerX, centerY);
-        g.RotateTransform(180.0f);
-
-        Gdiplus::RectF rotatedTop(
-            -topRect.Width * 0.5f,
-            -topRect.Height * 0.5f,
-            topRect.Width,
-            topRect.Height);
-
-        g.DrawString(fileText, -1, &coordFont, rotatedTop, &fileFormat, &labelBrush);
-        g.Restore(state);
+        DrawRotatedText(g, fileText, coordFont, topRect, fileFormat, labelBrush, 180.0f);
     }
 
     // draw rank numbers (1-8) on the sides, from White's perspective
@@ -511,22 +604,7 @@ void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
             (Gdiplus::REAL)layout.squareSize);
 
         g.DrawString(rankText, -1, &coordFont, leftRect, &rankFormat, &labelBrush);
-        
-        // flip the right-side rank to face the opposite player
-        Gdiplus::GraphicsState state = g.Save();
-        Gdiplus::REAL centerX = rightRect.X + rightRect.Width * 0.5f;
-        Gdiplus::REAL centerY = rightRect.Y + rightRect.Height * 0.5f;
-        g.TranslateTransform(centerX, centerY);
-        g.RotateTransform(180.0f);
-
-        Gdiplus::RectF rotatedRect(
-            -rightRect.Width * 0.5f,
-            -rightRect.Height * 0.5f,
-            rightRect.Width,
-            rightRect.Height);
-
-        g.DrawString(rankText, -1, &coordFont, rotatedRect, &rankFormat, &labelBrush);
-        g.Restore(state);
+        DrawRotatedText(g, rankText, coordFont, rightRect, rankFormat, labelBrush, 180.0f);
     }
 }
 

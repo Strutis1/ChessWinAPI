@@ -121,6 +121,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case GameScreen::MainMenu:
                 drawMainMenu(hwnd, gBackDC);
                 break;
+            case GameScreen::DifficultySelect:
+                drawDifficultyScreen(hwnd, gBackDC);
+                break;
             case GameScreen::Playing:
                 drawGameScreen(hwnd, gBackDC);
                 break;
@@ -151,6 +154,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     SetCursor(LoadCursor(NULL, IDC_HAND));
                     return TRUE;
                 }
+            } else if (appState.currentScreen == GameScreen::DifficultySelect) {
+                if (PtInRect(&sillyBotButton.rect, pt) || PtInRect(&backButton.rect, pt)) {
+                    SetCursor(LoadCursor(NULL, IDC_HAND));
+                    return TRUE;
+                }
             } else if (appState.currentScreen == GameScreen::Playing) {
                 if (pointInBoard(currentBoardLayout, pt.x, pt.y)) {
                     SetCursor(LoadCursor(NULL, IDC_HAND));
@@ -175,8 +183,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (PtInRect(&playButton.rect, pt))
             {
-                chessGame.init();
-                appState.currentScreen = GameScreen::Playing;
+                appState.currentScreen = GameScreen::DifficultySelect;
                 InvalidateRect(hwnd, NULL, TRUE);
             }
             else if (PtInRect(&loadButton.rect, pt))
@@ -197,6 +204,24 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 PostMessage(hwnd, WM_CLOSE, 0, 0);
             }
             return 0;
+        }
+        else if(appState.currentScreen == GameScreen::DifficultySelect){
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+            if (PtInRect(&sillyBotButton.rect, pt))
+            {
+                appState.currentDifficulty = "sillyBot";
+                chessGame.init();
+                appState.hasUnfinishedGame = false;
+                appState.currentScreen = GameScreen::Playing;
+                InvalidateRect(hwnd, NULL, TRUE);
+                return 0;
+            }
+            else if (PtInRect(&backButton.rect, pt))
+            {
+                appState.currentScreen = GameScreen::MainMenu;
+                InvalidateRect(hwnd, NULL, TRUE);
+                return 0;
+            }
         }
         else if(appState.currentScreen == GameScreen::Playing){
             POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
@@ -263,6 +288,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             settingsButton.onHover(hwnd, PtInRect(&settingsButton.rect, pt));
             exitButton.onHover(hwnd, PtInRect(&exitButton.rect, pt));
             break;
+        case GameScreen::DifficultySelect:
+            sillyBotButton.onHover(hwnd, PtInRect(&sillyBotButton.rect, pt));
+            backButton.onHover(hwnd, PtInRect(&backButton.rect, pt));
+            break;
         case GameScreen::GameOver:
             retryButton.onHover(hwnd, PtInRect(&retryButton.rect, pt));
             goExitButton.onHover(hwnd, PtInRect(&goExitButton.rect, pt));
@@ -275,9 +304,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     case WM_DESTROY:
     {
-        // Only save if a game is in progress; avoid overwriting an existing save
-        // when the user quits directly from menus or after finishing a game.
-        if (appState.currentScreen == GameScreen::Playing && chessGame.isGameOver() == false && chessGame.hasDirtyState()) {
+        if (appState.currentScreen == GameScreen::Playing && chessGame.isGameOver() == false) {
             if (chessGame.saveGame()) {
                 appState.hasUnfinishedGame = true;
             }

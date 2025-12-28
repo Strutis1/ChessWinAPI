@@ -20,8 +20,10 @@ struct Button
 
 extern Button playButton, loadButton, settingsButton, exitButton;
 extern Button retryButton, goExitButton;
+extern Button sillyBotButton, backButton;
 
 void drawMainMenu(HWND hwnd, HDC hdc);   // menu, button, background
+void drawDifficultyScreen(HWND hwnd, HDC hdc); // difficulty selection
 void drawGameScreen(HWND hwnd, HDC hdc); // board, background, pieces
 void drawGameOver(HWND hwnd, HDC hdc);   // buttons/options to either exit, play again or back to menu
 
