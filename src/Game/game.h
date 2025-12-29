@@ -11,9 +11,9 @@
 
 #include <chrono>
 
-//TODO: enpessant, castling, promotion
-//TODO:make bot more random(less predictable)
+//TODO: enpassant, castling, promotion
 //TODO:make pieces draggable
+//TODO: maybe add a bit of delauy when AI makes a move to simulate "thinking" and show move instead of instant change
 class ChessGame
 {
 private:
@@ -35,8 +35,11 @@ private:
 
 public:
 
-
     void init();
+    void startNewGameTimer(std::chrono::milliseconds total);
+    void syncTimerWithTurn();
+    GameTimer& getGameTimer() { return gameTimer; }
+    void updateTimer();
     bool isLegalMove(const Move& move);
     MoveResult tryMakeMove(const Move& move);
     void checkGameOver();
@@ -60,10 +63,6 @@ public:
     void setSelectedPosition(int x, int y) { selectedX = x; selectedY = y; };
     void clearSelectedPiece() { currentSelected = Piece(); selectedX = -1; selectedY = -1; };
     void clearSelectedPosition() { selectedX = -1; selectedY = -1; };
-
-    void initTimer(std::chrono::milliseconds initialTime) { timeLeft = initialTime; };
-    void decrementTimer(std::chrono::milliseconds delta) { if (timeLeft > delta) timeLeft -= delta; else timeLeft = std::chrono::milliseconds(0); };
-    std::chrono::milliseconds getTimeLeft() const { return timeLeft; };
 
 
 

@@ -243,6 +243,45 @@ static void DrawButtonLabel(Gdiplus::Graphics& g, const RECT& r, const wchar_t* 
     g.DrawString(text, -1, &font, rf, &fmt, &brush);
 }
 
+static std::wstring formatTimeMs(std::chrono::milliseconds ms)
+{
+    int totalSeconds = (int)(ms.count() / 1000);
+    if (totalSeconds < 0) totalSeconds = 0;
+
+    int minutes = totalSeconds / 60;
+    int seconds = totalSeconds % 60;
+
+    wchar_t buffer[16];
+    swprintf_s(buffer, L"%02d:%02d", minutes, seconds);
+    return std::wstring(buffer);
+}
+
+
+static void drawTimer(Gdiplus::Graphics& g, const RECT& clientRc, const BoardLayout& layout)
+{
+    int boxW = 140;
+    int boxH = 46;
+
+    int x = (clientRc.right - boxW) / 2;
+    int y = layout.originY - boxH - 18; 
+
+    if (y < 8) y = 8;
+
+    RECT timerRect{ x, y, x + boxW, y + boxH };
+
+    std::wstring t = formatTimeMs(chessGame.getGameTimer().getRemainingTime());
+
+    {
+        Gdiplus::SolidBrush bg(Gdiplus::Color(170, 0, 0, 0));
+        g.FillRectangle(&bg, (Gdiplus::REAL)timerRect.left, (Gdiplus::REAL)timerRect.top,
+                             (Gdiplus::REAL)(timerRect.right - timerRect.left),
+                             (Gdiplus::REAL)(timerRect.bottom - timerRect.top));
+    }
+
+    DrawCenteredText(g, timerRect, t.c_str(), 28.0f, true);
+}
+
+
 void drawMainMenu(HWND hwnd, HDC hdc)
 {
     Gdiplus::Graphics g(hdc);
@@ -465,6 +504,9 @@ void drawGameScreen(HWND hwnd, HDC hdc)
     }
 
     drawBoard(hwnd, g, currentBoardLayout);
+
+    drawTimer(g, rc, currentBoardLayout);
+
 }
 
 
@@ -712,26 +754,7 @@ void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
     }
 }
 
-void drawTimer(HWND hwnd, HDC hdc)
-{
-    Gdiplus::Graphics g(hdc);
 
-    g.SetSmoothingMode(Gdiplus::SmoothingModeHighQuality);
-    g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHighQuality);
-    g.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBilinear);
-
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    RECT timerRect{
-        rc.right - 150,
-        10,
-        rc.right - 10,
-        10 + 40
-    };
-    float timerSize = 28.0f;
-    
-    
-}
 
 bool pointInBoard(const BoardLayout& layout, int x, int y)
 {

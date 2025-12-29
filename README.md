@@ -1,113 +1,78 @@
-# ♟️ ChessWinAPI
+# ChessWinAPI
 
-A Windows API–based chess application built in modern C++ (C++20) using GDI+ for graphics.  
-This project supports both **native Windows builds** and **cross-compilation from Linux** using MinGW.
+Windows API chess app in C++20 using raw Win32 + GDI+. Features a simple UI with main menu, difficulty selection, **color selection (play as White or Black)**, save/load to JSON, and a pluggable AI that lives in a DLL.
 
----
+## What’s here
+- Win32 window + double-buffered GDI+ rendering of board/pieces.
+- Screens: Main Menu → Difficulty → Color Select → Game → Game Over.
+- Player color picker flips board orientation and turn handling.
+- Save/resume unfinished games (`savegame.json`) with persisted difficulty and chosen color.
+- Basic AI bot invoked through `sillyBot.dll`.
 
-## 🧰 Requirements
+## Implementation notes
+- UI: raw Win32 messages with custom buttons drawn via GDI+; back-buffer to reduce flicker.
+- Board rendering: coordinates flip when playing as Black (display ↔ board transforms).
+- Input: only the player’s turn accepts clicks; AI moves scheduled via a custom window message.
+- Persistence: JSON-like save (no external lib) storing board, turn, difficulty, and player color.
+- AI: DLL exposes `chooseMoveFromList`; `Chess.exe` loads it at startup and delegates move choice.
 
-### 🪟 On Windows
-Make sure you have:
+## DLL / AI note
+- The chess AI is shipped as `sillyBot.dll` in this repo for convenience.
+- The bot source lives in my separate ChessBot repo; update/rebuild the DLL there if you want to change AI behavior.
+- `Chess.exe` loads the DLL at startup and calls `chooseMoveFromList`.
 
-- **[MSYS2](https://www.msys2.org/)** (recommended)
-- Inside MSYS2, install the required packages:
-
+## Requirements
+### Windows (MSYS2 recommended)
+- Install MSYS2, then in the **MinGW64** shell:
   ```bash
   pacman -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-binutils make
+  ```
+  Optional: VS Code + C/C++ extension.
 
-    Optional (for code editing):
+### Linux (cross-compile for Windows)
+- Install MinGW and Wine:
+  ```bash
+  sudo pacman -S mingw-w64-gcc make wine
+  # or on Debian/Ubuntu:
+  sudo apt install mingw-w64 make wine
+  ```
 
-        Visual Studio Code + C/C++ extension
-
-    After installation, open MSYS2 MinGW64 shell — not the default MSYS shell.
-
-🐧 On Linux (cross-compile for Windows)
-
-Install MinGW and Wine:
-
-sudo pacman -S mingw-w64-gcc make wine
-
-On Debian/Ubuntu-based systems:
-
-sudo apt install mingw-w64 make wine
-
-⚙️ Build Instructions
-🪟 On Windows
-
-In the MSYS2 MinGW64 shell:
-
+## Build
+### Windows
+```bash
 make
-
-This will generate:
-
-Chess.exe
-
-Run it directly:
-
 ./Chess.exe
+```
 
-🐧 On Linux
-
-In your terminal:
-
+### Linux
+```bash
 make
-
-Then run the Windows executable using Wine:
-
 wine Chess.exe
+```
 
-🧹 Cleaning the Build
-
-To remove all compiled objects and the executable:
-
+## Clean
+```bash
 make clean
+```
 
-🪶 Notes
+## Notes
+- Makefile picks the right compiler automatically (g++ on Windows, x86_64-w64-mingw32-g++ on Linux).
+- GDI+ and Win32 headers are provided via MinGW packages.
+- If Wine or a DLL is missing on Linux, install via your package manager.
 
-    The Makefile automatically detects the OS and uses the correct compiler:
+## TODO / roadmap (from code comments)
+- Rules: en passant, castling, and a proper promotion chooser (likely modal or inline buttons); add per-side timers.
+- AI: more randomness/strength options, and additional bots selectable from the difficulty screen.
+- UX: Settings screen (audio, themes, controls), richer visuals, and better bot-selection UX (show names/descriptions).
+- Polish: guard saves when a game ends, add tests for move legality, and surface error prompts when the DLL is missing.
 
-        Windows: g++ (MSYS2 MinGW)
-
-        Linux: x86_64-w64-mingw32-g++
-
-    GDI+ and Windows headers are included automatically via MinGW.
-
-    The build produces a standalone Chess.exe on Linux (linked statically).
-
-    Works in both VS Code and terminal-only environments.
-
-🧩 Folder Structure
-
+## Folder structure
+```
 ChessWinAPI/
-│
 ├── src/
-│   ├── main.cpp
-│   └── utilz.cpp
-│
 ├── Resources/
-│   ├── main.rc
-│   └── resource.h
-│
+├── Include/
+├── ChessBot/        # AI DLL source lives elsewhere; DLL binary is included here
 ├── makefile
 └── README.md
-
-💡 Tips
-
-    If you get a wine or DLL missing error on Linux:
-
-    sudo pacman -S wine
-
-    or install via your distro’s package manager.
-
-    On Windows, ensure you’re compiling inside the MSYS2 MinGW64 shell (g++ --version should mention MinGW).
-
-✅ Example Commands Recap
-Command	Purpose
-make	Build the Windows executable
-make clean	Remove compiled files
-wine Chess.exe	Run on Linux
-./Chess.exe	Run on Windows
-
-Author: wind
-License: MIT
+```

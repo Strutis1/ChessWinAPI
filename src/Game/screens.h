@@ -30,7 +30,6 @@ void drawDifficultyScreen(HWND hwnd, HDC hdc); // difficulty selection
 void drawColorSelectScreen(HWND hwnd, HDC hdc); // color selection
 void drawGameScreen(HWND hwnd, HDC hdc); // board, background, pieces
 void drawGameOver(HWND hwnd, HDC hdc);   // buttons/options to either exit, play again or back to menu
-void drawTimer(HWND hwnd, HDC hdc);
 
 
 struct BoardLayout

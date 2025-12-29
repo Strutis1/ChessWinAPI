@@ -102,7 +102,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (wParam == Timer::GameLoop)
         {
             if (appState.currentScreen == GameScreen::Playing)
+            {
+                chessGame.updateTimer();
+                chessGame.checkGameOver();//checks if time is up
                 InvalidateRect(hwnd, NULL, FALSE);
+            }
         }
         return 0;
 
@@ -208,6 +212,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     {
                         chessGame.loadGame();
                         appState.currentScreen = GameScreen::Playing;
+                        chessGame.syncTimerWithTurn();
                         InvalidateRect(hwnd, NULL, TRUE);
                         if (chessGame.getCurrentTurn() != appState.playerColor && appState.currentDifficulty == "sillyBot") {
                             PostMessage(hwnd, WM_AI_MOVE, 0, 0);
@@ -248,9 +253,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 chessGame.init();
                 appState.hasUnfinishedGame = false;
                 appState.currentScreen = GameScreen::Playing;
+                chessGame.startNewGameTimer(std::chrono::minutes(10));
                 InvalidateRect(hwnd, NULL, TRUE);
                 if (chessGame.getCurrentTurn() != appState.playerColor && appState.currentDifficulty == "sillyBot") {
-                    PostMessage(hwnd, WM_AI_MOVE, 0, 0);
+                    PostMessage(hwnd, WM_AI_MOVE, 0, 0);//call bot
                 }
                 return 0;
             }
@@ -260,7 +266,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 chessGame.init();
                 appState.hasUnfinishedGame = false;
                 appState.currentScreen = GameScreen::Playing;
+                chessGame.startNewGameTimer(std::chrono::minutes(10));
                 InvalidateRect(hwnd, NULL, TRUE);
+
                 if (chessGame.getCurrentTurn() != appState.playerColor && appState.currentDifficulty == "sillyBot") {
                     PostMessage(hwnd, WM_AI_MOVE, 0, 0);
                 }

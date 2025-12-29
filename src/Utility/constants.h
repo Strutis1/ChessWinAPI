@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+
+
 namespace Window
 {
     constexpr int Height = 800;

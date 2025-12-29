@@ -9,8 +9,6 @@
 
 
 
-
-
 // ai interface helpers
 static int8_t encodePieceForAi(const Piece& p)
 {
@@ -83,8 +81,23 @@ void ChessGame::init()
     selectedX = -1;
     selectedY = -1;
     hasUnsavedChanges = false;
+    gameTimer.reset();
 
     winner = PieceColor::NONE;
+}
+
+void ChessGame::startNewGameTimer(std::chrono::milliseconds total)
+{
+    gameTimer.start(total);
+    syncTimerWithTurn();
+}
+
+void ChessGame::syncTimerWithTurn()
+{
+    if (currentTurn == appState.playerColor)
+        gameTimer.resume();
+    else
+        gameTimer.pause();
 }
 
 void ChessGame::MakeAiMove()
@@ -170,6 +183,13 @@ void ChessGame::checkGameOver()
         winner = (currentTurn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
         endGame();
     }
+    if(gameTimer.isTimeUp())
+    {
+        winner = appState.playerColor == currentTurn ? 
+                    (currentTurn == PieceColor::WHITE ? PieceColor::BLACK : PieceColor::WHITE)
+                    : currentTurn;
+        endGame();
+    }
     else
     {
         draw = stalemate();
@@ -211,6 +231,7 @@ bool ChessGame::saveGame()
     out << "  \"turn\": \"" << (currentTurn == PieceColor::WHITE ? "white" : "black") << "\",\n";
     out << "  \"difficulty\": \"" << appState.currentDifficulty << "\",\n";
     out << "  \"playerColor\": \"" << (appState.playerColor == PieceColor::WHITE ? "white" : "black") << "\",\n";
+    out << "  \"timeRemainingMs\": " << gameTimer.getRemainingTime().count() << ",\n";
     out << "  \"board\": [\n";
     for (int y = 0; y < 8; ++y) {
         out << "    [";
@@ -282,6 +303,21 @@ bool ChessGame::loadGame()
             theBoard.setPieceAt(x, y, codeToPiece(codes[y * 8 + x]));
         }
     }
+    size_t timePos = content.find("\"timeRemainingMs\"");
+    if (timePos != std::string::npos) {
+        size_t colon = content.find(':', timePos);
+        size_t comma = content.find(',', colon);
+        if (colon != std::string::npos && comma != std::string::npos) {
+            std::string timeStr = content.substr(colon + 1, comma - colon - 1);
+            try {
+                int64_t ms = std::stoll(timeStr);
+                gameTimer.setRemaining(std::chrono::milliseconds(ms));
+            } catch (...) {
+                gameTimer.setRemaining(std::chrono::minutes(10));
+            }
+        }
+    }
+
 
     currentTurn = loadedTurn;
     gameOver = false;
@@ -291,6 +327,7 @@ bool ChessGame::loadGame()
     appState.hasUnfinishedGame = true;
     appState.currentDifficulty = difficultyStr;
     appState.playerColor = (playerColorStr == "black") ? PieceColor::BLACK : PieceColor::WHITE;
+    syncTimerWithTurn();
     hasUnsavedChanges = false;
     return true;
 }
@@ -504,13 +541,19 @@ bool ChessGame::isInCheck(const Board& board, PieceColor kingColor) const
     return false; 
 }
 
+void ChessGame::updateTimer()
+{
+    if(!gameOver)
+        gameTimer.update();
+}
+
 
 void ChessGame::switchTurn()
 {
-    if (currentTurn == PieceColor::WHITE)
-        currentTurn = PieceColor::BLACK;
-    else
-        currentTurn = PieceColor::WHITE;
+    currentTurn = (currentTurn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
+
+    if (currentTurn == appState.playerColor) gameTimer.resume();
+    else gameTimer.pause();
 }
 
 

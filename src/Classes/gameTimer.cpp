@@ -7,17 +7,28 @@ GameTimer::GameTimer()
 {
 }
 
+GameTimer::GameTimer(std::chrono::milliseconds initialTime)
+    : remainingMs(initialTime), lastUpdate(std::chrono::steady_clock::now()), initialMs(initialTime), running(false)
+{
+}
+
 void GameTimer::start(std::chrono::milliseconds initialTime)
 {
     initialMs = initialTime;
     remainingMs = initialTime;
     lastUpdate = std::chrono::steady_clock::now();
+}
+void GameTimer::resume()
+{
+    lastUpdate = std::chrono::steady_clock::now();
     running = true;
 }
+
 void GameTimer::pause()
 {
     running = false;
 }
+
 void GameTimer::update()
 {
     if (!running) return;
@@ -36,16 +47,19 @@ void GameTimer::reset()
 {
     remainingMs = initialMs;
     lastUpdate = std::chrono::steady_clock::now();
-}
-void GameTimer::tick(std::chrono::milliseconds nowMs)
-{
-    if (!running) return;
-    if (remainingMs > nowMs)
-        remainingMs -= nowMs;
-    else
-        remainingMs = std::chrono::milliseconds(0);
+    running = false;
 }
 bool GameTimer::isTimeUp() const
 {
     return remainingMs.count() <= 0;
+}
+
+void GameTimer::setRemaining(std::chrono::milliseconds ms)
+{
+    remainingMs = ms;
+}
+
+std::chrono::milliseconds GameTimer::getRemainingTime() const
+{
+    return remainingMs;
 }

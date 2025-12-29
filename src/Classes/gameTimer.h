@@ -5,19 +5,20 @@
 #include <chrono>
 class GameTimer
 {
-
-public:
     std::chrono::milliseconds remainingMs;
     std::chrono::steady_clock::time_point lastUpdate;
     std::chrono::milliseconds initialMs;
     bool running = false;
-
+public:
     GameTimer();
+    GameTimer(std::chrono::milliseconds initialTime);
     void start(std::chrono::milliseconds initialTime);
+    void resume();
     void pause();
     void update();
     void reset();
-    void tick(std::chrono::milliseconds nowMs);
     bool isTimeUp() const;
+    void setRemaining(std::chrono::milliseconds ms);
+    std::chrono::milliseconds getRemainingTime() const;
 };
 #endif
