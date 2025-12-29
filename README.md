@@ -16,6 +16,7 @@ Windows API chess app in C++20 using raw Win32 + GDI+. Features a simple UI with
 - Persistence: JSON-like save (no external lib) storing board, turn, difficulty, and player color.
 - AI: DLL exposes `chooseMoveFromList`; `Chess.exe` loads it at startup and delegates move choice.
 
+
 ## DLL / AI note
 - The chess AI is shipped as `sillyBot.dll` in this repo for convenience.
 - The bot source lives in my separate ChessBot repo; update/rebuild the DLL there if you want to change AI behavior.
@@ -60,7 +61,7 @@ make clean
 - GDI+ and Win32 headers are provided via MinGW packages.
 - If Wine or a DLL is missing on Linux, install via your package manager.
 
-## TODO / roadmap (from code comments)
+## TODO / roadmap
 - Rules: en passant, castling, and a proper promotion chooser (likely modal or inline buttons); add per-side timers.
 - AI: more randomness/strength options, and additional bots selectable from the difficulty screen.
 - UX: Settings screen (audio, themes, controls), richer visuals, and better bot-selection UX (show names/descriptions).
