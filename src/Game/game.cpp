@@ -1,7 +1,77 @@
 #include "game.h"
 #include "screens.h"
 #include "appState.h"
+#include <stdint.h>
+#include <vector>
 
+
+#include "../Include/aiLoader.h"
+
+
+
+
+
+// ai interface helpers
+static int8_t encodePieceForAi(const Piece& p)
+{
+    if (p.type == PieceType::NONE) return 0;
+
+    int8_t v = 0;
+    switch (p.type)
+    {
+    case PieceType::PAWN:   v = 1; break;
+    case PieceType::KNIGHT: v = 2; break;
+    case PieceType::BISHOP: v = 3; break;
+    case PieceType::ROOK:   v = 4; break;
+    case PieceType::QUEEN:  v = 5; break;
+    case PieceType::KING:   v = 6; break;
+    default: v = 0; break;
+    }
+
+    return (p.color == PieceColor::WHITE) ? v : (int8_t)-v;
+}
+
+
+static AIBoard makeAIBoardFromGame(const ChessGame& game)
+{
+    AIBoard b{};
+    const Board& board = game.getBoard();
+
+    for (int y = 0; y < 8; ++y)
+        for (int x = 0; x < 8; ++x)
+            b.cells[y*8 + x] = encodePieceForAi(board.getPieceAt(x, y));
+
+    b.sideToMove = (game.getCurrentTurn() == PieceColor::WHITE) ? 1 : -1;
+    return b;
+}
+
+static std::vector<AIMove> generateLegalMoves(ChessGame& game)
+{
+    std::vector<AIMove> moves;
+    moves.reserve(128);
+
+    for (int y = 0; y < 8; ++y)
+    for (int x = 0; x < 8; ++x)
+    {
+        Piece p = game.getBoard().getPieceAt(x, y);
+        if (p.type == PieceType::NONE) continue;
+        if (p.color != game.getCurrentTurn()) continue;
+
+        for (int ty = 0; ty < 8; ++ty)
+        for (int tx = 0; tx < 8; ++tx)
+        {
+            Move m(x, y, tx, ty);
+            if (game.isLegalMove(m))
+            {
+                AIMove am;
+                am.fromX = (int8_t)x;  am.fromY = (int8_t)y;
+                am.toX   = (int8_t)tx; am.toY   = (int8_t)ty;
+                moves.push_back(am);
+            }
+        }
+    }
+    return moves;
+}
 
 
 void ChessGame::init()
@@ -16,6 +86,36 @@ void ChessGame::init()
 
     winner = PieceColor::NONE;
 }
+
+void ChessGame::MakeAiMove()
+{
+    if (isGameOver()) return;
+    if (currentTurn == appState.playerColor) return;
+
+    auto legal = generateLegalMoves(*this);
+    if (legal.empty()) return;
+
+    auto fn = GetAiChooseMoveFromListFn();
+    if (!fn) return;
+
+    AIBoard aiBoard = makeAIBoardFromGame(*this);
+
+    AIMoveList list;
+    list.moves = legal.data();
+    list.count = (int32_t)legal.size();
+
+    AIMove chosen{};
+    int rc = fn(&aiBoard, &list, &chosen);
+    if (rc != 0) return;
+
+    Move move(chosen.fromX, chosen.fromY, chosen.toX, chosen.toY);
+    if (!isLegalMove(move)) return;
+
+    tryMakeMove(move);
+}
+
+
+
 
 
 bool ChessGame::isLegalMove(const Move& move)
@@ -38,16 +138,28 @@ bool ChessGame::isLegalMove(const Move& move)
 }
 
 
-void ChessGame::makeMove(const Move& move)
+MoveResult ChessGame::tryMakeMove(const Move& move)
 {
-    if (isLegalMove(move))
-    {
-        theBoard.movePiece(move.fromX, move.fromY, move.toX, move.toY);
-        switchTurn();
-        checkGameOver();
-        hasUnsavedChanges = true;
-    }
+    if (!isLegalMove(move))
+        return MoveResult(false);
+
+    theBoard.movePiece(move.fromX, move.fromY, move.toX, move.toY);
+    switchTurn();
+    checkGameOver();
+    hasUnsavedChanges = true;
+
+    //promotion logic, too much hassle right now to make user chooose which piece
+    // Piece movedPiece = theBoard.getPieceAt(move.toX, move.toY);
+    // bool promotionAvailable =
+    //     (movedPiece.type == PieceType::PAWN) &&
+    //     ((movedPiece.color == PieceColor::WHITE && move.toY == 0) ||
+    //      (movedPiece.color == PieceColor::BLACK && move.toY == 7));
+
+    return MoveResult(true);
 }
+
+
+
 void ChessGame::checkGameOver()
 {
     bool mate = isMate();
@@ -88,7 +200,7 @@ void ChessGame::checkForSavedGame()
     appState.hasUnfinishedGame = ok;
 }
 
- 
+
 bool ChessGame::saveGame()
 {
     std::ofstream out(kSaveFile, std::ios::trunc);
@@ -98,6 +210,7 @@ bool ChessGame::saveGame()
     out << "  \"formatVersion\": 1,\n";
     out << "  \"turn\": \"" << (currentTurn == PieceColor::WHITE ? "white" : "black") << "\",\n";
     out << "  \"difficulty\": \"" << appState.currentDifficulty << "\",\n";
+    out << "  \"playerColor\": \"" << (appState.playerColor == PieceColor::WHITE ? "white" : "black") << "\",\n";
     out << "  \"board\": [\n";
     for (int y = 0; y < 8; ++y) {
         out << "    [";
@@ -144,6 +257,8 @@ bool ChessGame::loadGame()
 
     std::string difficultyStr = "sillyBot";
     getString("difficulty", difficultyStr); 
+    std::string playerColorStr = "white";
+    getString("playerColor", playerColorStr); 
 
     size_t boardPos = content.find("\"board\"");
     if (boardPos == std::string::npos) return false;
@@ -175,6 +290,7 @@ bool ChessGame::loadGame()
     selectedY = -1;
     appState.hasUnfinishedGame = true;
     appState.currentDifficulty = difficultyStr;
+    appState.playerColor = (playerColorStr == "black") ? PieceColor::BLACK : PieceColor::WHITE;
     hasUnsavedChanges = false;
     return true;
 }

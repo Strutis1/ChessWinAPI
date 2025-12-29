@@ -20,9 +20,13 @@ struct AIBoard {
     int8_t sideToMove;  
 };
 
-AI_API const wchar_t* botName();
+struct AIMoveList {
+    const AIMove* moves;  
+    int32_t count;
+};
 
-AI_API int chooseMove(const AIBoard* board, AIMove* outMove);
+AI_API int chooseMoveFromList(const AIBoard* board, const AIMoveList* list, AIMove* outMove);
+AI_API int chooseMoveFromListAggressive(const AIBoard* board, const AIMoveList* list, AIMove* outMove);
 
 }
 

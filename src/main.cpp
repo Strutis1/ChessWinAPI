@@ -8,12 +8,18 @@
 #include "Game/screens.h"
 #include "Game/game.h"
 #include "Game/appState.h"
+#include "../Include/aiLoader.h"
+
+#define WM_AI_MOVE (WM_APP + 1)
+
+
 
 HINSTANCE hInst;
 
 AppState appState;
 ChessGame chessGame;
 BoardLayout currentBoardLayout;
+
 
 static HDC     gBackDC   = NULL;
 static HBITMAP gBackBmp  = NULL;
@@ -124,6 +130,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case GameScreen::DifficultySelect:
                 drawDifficultyScreen(hwnd, gBackDC);
                 break;
+            case GameScreen::ColorSelect:
+                drawColorSelectScreen(hwnd, gBackDC);
+                break;
             case GameScreen::Playing:
                 drawGameScreen(hwnd, gBackDC);
                 break;
@@ -156,6 +165,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 }
             } else if (appState.currentScreen == GameScreen::DifficultySelect) {
                 if (PtInRect(&sillyBotButton.rect, pt) || PtInRect(&backButton.rect, pt)) {
+                    SetCursor(LoadCursor(NULL, IDC_HAND));
+                    return TRUE;
+                }
+            } else if (appState.currentScreen == GameScreen::ColorSelect) {
+                if (PtInRect(&whiteButton.rect, pt) ||
+                    PtInRect(&blackButton.rect, pt) ||
+                    PtInRect(&colorBackButton.rect, pt)) {
                     SetCursor(LoadCursor(NULL, IDC_HAND));
                     return TRUE;
                 }
@@ -193,6 +209,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         chessGame.loadGame();
                         appState.currentScreen = GameScreen::Playing;
                         InvalidateRect(hwnd, NULL, TRUE);
+                        if (chessGame.getCurrentTurn() != appState.playerColor && appState.currentDifficulty == "sillyBot") {
+                            PostMessage(hwnd, WM_AI_MOVE, 0, 0);
+                        }
                     }
                 }
             else if (PtInRect(&settingsButton.rect, pt))
@@ -210,9 +229,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (PtInRect(&sillyBotButton.rect, pt))
             {
                 appState.currentDifficulty = "sillyBot";
-                chessGame.init();
-                appState.hasUnfinishedGame = false;
-                appState.currentScreen = GameScreen::Playing;
+                appState.currentScreen = GameScreen::ColorSelect;
                 InvalidateRect(hwnd, NULL, TRUE);
                 return 0;
             }
@@ -223,26 +240,60 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 return 0;
             }
         }
-        else if(appState.currentScreen == GameScreen::Playing){
+        else if(appState.currentScreen == GameScreen::ColorSelect){
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+            if (PtInRect(&whiteButton.rect, pt))
+            {
+                appState.playerColor = PieceColor::WHITE;
+                chessGame.init();
+                appState.hasUnfinishedGame = false;
+                appState.currentScreen = GameScreen::Playing;
+                InvalidateRect(hwnd, NULL, TRUE);
+                if (chessGame.getCurrentTurn() != appState.playerColor && appState.currentDifficulty == "sillyBot") {
+                    PostMessage(hwnd, WM_AI_MOVE, 0, 0);
+                }
+                return 0;
+            }
+            else if (PtInRect(&blackButton.rect, pt))
+            {
+                appState.playerColor = PieceColor::BLACK;
+                chessGame.init();
+                appState.hasUnfinishedGame = false;
+                appState.currentScreen = GameScreen::Playing;
+                InvalidateRect(hwnd, NULL, TRUE);
+                if (chessGame.getCurrentTurn() != appState.playerColor && appState.currentDifficulty == "sillyBot") {
+                    PostMessage(hwnd, WM_AI_MOVE, 0, 0);
+                }
+                return 0;
+            }
+            else if (PtInRect(&colorBackButton.rect, pt))
+            {
+                appState.currentScreen = GameScreen::DifficultySelect;
+                InvalidateRect(hwnd, NULL, TRUE);
+                return 0;
+            }
+        }
+        else if(appState.currentScreen == GameScreen::Playing ){
             POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
             if(pointInBoard(currentBoardLayout, pt.x, pt.y)){
-                int boardX = (pt.x - currentBoardLayout.originX) / currentBoardLayout.squareSize;
-                int boardY = (pt.y - currentBoardLayout.originY) / currentBoardLayout.squareSize;
+                if (chessGame.getCurrentTurn() != appState.playerColor) {
+                    return 0;
+                }
+
+                int displayX = (pt.x - currentBoardLayout.originX) / currentBoardLayout.squareSize;
+                int displayY = (pt.y - currentBoardLayout.originY) / currentBoardLayout.squareSize;
+                int boardX = displayToBoardCoord(displayX);
+                int boardY = displayToBoardCoord(displayY);
                 if(chessGame.getSelectedPiece().type != PieceType::NONE){
                     Move move(chessGame.getSelectedPosX(), chessGame.getSelectedPosY(), boardX, boardY);
-                    
+                    MoveResult result = chessGame.tryMakeMove(move);
+                    chessGame.clearSelectedPiece();
+                    chessGame.clearSelectedPosition();
+                    if(result.success){
+                        InvalidateRect(hwnd, NULL, TRUE);
 
-                    if(chessGame.isLegalMove(move)){
-                        chessGame.makeMove(move);
-                        chessGame.clearSelectedPiece();
-                        chessGame.clearSelectedPosition();
-                        InvalidateRect(hwnd, NULL, FALSE);
-                        return 0;
-                    }
-                    else{
-                        chessGame.clearSelectedPiece();
-                        chessGame.clearSelectedPosition();
-                        InvalidateRect(hwnd, NULL, FALSE);
+                        PostMessage(hwnd, WM_AI_MOVE, 0, 0); //call bot
+
                         return 0;
                     }
                 }
@@ -260,7 +311,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (PtInRect(&retryButton.rect, pt))
             {
                 chessGame.init();
-                appState.currentScreen = GameScreen::Playing;
+                appState.currentScreen = GameScreen::ColorSelect;
                 InvalidateRect(hwnd, NULL, TRUE);
                 return 0;
             }
@@ -292,6 +343,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             sillyBotButton.onHover(hwnd, PtInRect(&sillyBotButton.rect, pt));
             backButton.onHover(hwnd, PtInRect(&backButton.rect, pt));
             break;
+        case GameScreen::ColorSelect:
+            whiteButton.onHover(hwnd, PtInRect(&whiteButton.rect, pt));
+            blackButton.onHover(hwnd, PtInRect(&blackButton.rect, pt));
+            colorBackButton.onHover(hwnd, PtInRect(&colorBackButton.rect, pt));
+            break;
         case GameScreen::GameOver:
             retryButton.onHover(hwnd, PtInRect(&retryButton.rect, pt));
             goExitButton.onHover(hwnd, PtInRect(&goExitButton.rect, pt));
@@ -301,6 +357,19 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
     }
+
+    case WM_AI_MOVE:
+{
+    if (appState.currentScreen == GameScreen::Playing &&
+        !chessGame.isGameOver() &&
+        chessGame.getCurrentTurn() != appState.playerColor &&
+        appState.currentDifficulty == "sillyBot")
+    {
+        chessGame.MakeAiMove();
+        InvalidateRect(hwnd, NULL, TRUE);
+    }
+    return 0;
+}
 
     case WM_DESTROY:
     {
@@ -326,6 +395,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
+    HMODULE dll = LoadLibraryA("sillyBot.dll");
+    if (!dll) {
+        MessageBoxW(NULL, L"Failed to load AI DLL", L"Error", MB_OK | MB_ICONERROR);
+        return 1;
+    }
+
+    auto fn = (ChooseMoveFromListFn)GetProcAddress(dll, "chooseMoveFromList");
+    if (!fn) {
+        MessageBoxW(NULL, L"chooseMoveFromList export not found", L"Error", MB_OK | MB_ICONERROR);
+        FreeLibrary(dll);
+        return 1;
+    }
+
+    SetAiChooseMoveFromListFn(fn);
     hInst = hInstance;
 
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -366,5 +449,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
     }
 
     Gdiplus::GdiplusShutdown(gdiplusToken);
+    FreeLibrary(dll);
     return (int)msg.wParam;
 }

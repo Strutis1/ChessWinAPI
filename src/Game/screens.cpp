@@ -14,6 +14,9 @@ Button retryButton;
 Button goExitButton;
 Button sillyBotButton;
 Button backButton;
+Button whiteButton;
+Button blackButton;
+Button colorBackButton;
 
 static int RectW(const RECT& r) { return r.right - r.left; }
 static int RectH(const RECT& r) { return r.bottom - r.top; }
@@ -76,6 +79,23 @@ static RECT GetVisualRect(const Button& b)
 static std::wstring ToWString(const std::string& s)
 {
     return std::wstring(s.begin(), s.end());
+}
+
+static bool PlayerIsWhite()
+{
+    return appState.playerColor != PieceColor::BLACK;
+}
+
+int displayToBoardCoord(int displayCoord)
+{
+    int maxIdx = BoardUI::BoardCols - 1;
+    return PlayerIsWhite() ? displayCoord : (maxIdx - displayCoord);
+}
+
+int boardToDisplayCoord(int boardCoord)
+{
+    int maxIdx = BoardUI::BoardCols - 1;
+    return PlayerIsWhite() ? boardCoord : (maxIdx - boardCoord);
 }
 
 static void DrawRotatedText(Gdiplus::Graphics& g, const wchar_t* text, const Gdiplus::Font& font,
@@ -183,6 +203,29 @@ static void LayoutDifficultyButtons(HWND hwnd)
 
     sillyBotButton.init(nullptr, btnX, startY, btnW, btnH);
     backButton.init(nullptr, btnX, startY + btnH + gap, btnW, btnH);
+}
+
+static void LayoutColorButtons(HWND hwnd)
+{
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+    int w = rc.right;
+    int h = rc.bottom;
+
+    int btnW = (int)(w * 0.32);
+    int btnH = (int)(h * 0.08);
+    if (btnW < 220) btnW = 220;
+    if (btnH < 52)  btnH = 52;
+
+    int btnX = (w - btnW) / 2;
+    int gap  = (int)(h * 0.02);
+    if (gap < 12) gap = 12;
+
+    int startY = (int)(h * 0.42f);
+
+    whiteButton.init(nullptr, btnX, startY, btnW, btnH);
+    blackButton.init(nullptr, btnX, startY + btnH + gap, btnW, btnH);
+    colorBackButton.init(nullptr, btnX, startY + 2 * (btnH + gap), btnW, btnH);
 }
 
 static void DrawButtonLabel(Gdiplus::Graphics& g, const RECT& r, const wchar_t* text, bool hovered)
@@ -322,6 +365,62 @@ void drawDifficultyScreen(HWND hwnd, HDC hdc)
     DrawCenteredText(g, rBack,  L"Back", labelSize, true);
 }
 
+void drawColorSelectScreen(HWND hwnd, HDC hdc)
+{
+    Gdiplus::Graphics g(hdc);
+
+    g.SetSmoothingMode(Gdiplus::SmoothingModeHighQuality);
+    g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHighQuality);
+    g.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBilinear);
+
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+
+    if (gAssets.mainmenuBg)
+    {
+        g.DrawImage(gAssets.mainmenuBg, 0, 0, rc.right, rc.bottom);
+    }
+    else if (gAssets.woodmenuBg)
+    {
+        g.DrawImage(gAssets.woodmenuBg, 0, 0, rc.right, rc.bottom);
+    }
+    else
+    {
+        Gdiplus::SolidBrush bgFill(Gdiplus::Color(255, 28, 28, 28));
+        g.FillRectangle(&bgFill, Gdiplus::RectF(0, 0, (Gdiplus::REAL)RectW(rc), (Gdiplus::REAL)RectH(rc)));
+    }
+
+    RECT titleRect{
+        0,
+        (int)(rc.bottom * 0.12f),
+        rc.right,
+        (int)(rc.bottom * 0.28f)
+    };
+
+    float titleSize = (float)(rc.bottom * 0.07f);
+    if (titleSize < 32.0f) titleSize = 32.0f;
+    if (titleSize > 72.0f) titleSize = 72.0f;
+
+    DrawCenteredText(g, titleRect, L"Choose Your Color", titleSize, true);
+
+    LayoutColorButtons(hwnd);
+
+    whiteButton.draw(g);
+    blackButton.draw(g);
+    colorBackButton.draw(g);
+
+    float labelSize = (float)((whiteButton.rect.bottom - whiteButton.rect.top) * 0.45f);
+    if (labelSize < 18.0f) labelSize = 18.0f;
+
+    RECT rWhite = GetVisualRect(whiteButton);
+    RECT rBlack = GetVisualRect(blackButton);
+    RECT rBack  = GetVisualRect(colorBackButton);
+
+    DrawCenteredText(g, rWhite, L"Play as White", labelSize, true);
+    DrawCenteredText(g, rBlack, L"Play as Black", labelSize, true);
+    DrawCenteredText(g, rBack,  L"Back", labelSize, true);
+}
+
 static void LayoutGameOverButtons(HWND hwnd)
 {
     RECT rc;
@@ -367,6 +466,7 @@ void drawGameScreen(HWND hwnd, HDC hdc)
 
     drawBoard(hwnd, g, currentBoardLayout);
 }
+
 
 
 void drawGameOver(HWND hwnd, HDC hdc)
@@ -492,18 +592,20 @@ void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
     rankFormat.SetAlignment(Gdiplus::StringAlignmentCenter);
     rankFormat.SetLineAlignment(Gdiplus::StringAlignmentCenter);
 
-    for (int row = 0; row < BoardUI::BoardRows; ++row)
+    for (int displayRow = 0; displayRow < BoardUI::BoardRows; ++displayRow)
     {
-        for (int col = 0; col < BoardUI::BoardCols; ++col)
+        for (int displayCol = 0; displayCol < BoardUI::BoardCols; ++displayCol)
         {
-            bool isLightSquare = ((row + col) % 2 == 0);
+            int boardCol = displayToBoardCoord(displayCol);
+            int boardRow = displayToBoardCoord(displayRow);
+            bool isLightSquare = ((boardRow + boardCol) % 2 == 0);
             Gdiplus::Color squareColor = isLightSquare ? Gdiplus::Color(255, 210, 210, 210)
                                                       : Gdiplus::Color(255, 95, 95, 95);
                                                 
             Gdiplus::SolidBrush brush(squareColor);
 
-            int x = layout.originX + col * layout.squareSize;
-            int y = layout.originY + row * layout.squareSize;
+            int x = layout.originX + displayCol * layout.squareSize;
+            int y = layout.originY + displayRow * layout.squareSize;
             
 
             Gdiplus::Rect squareRect((Gdiplus::REAL)x, (Gdiplus::REAL)y,
@@ -512,14 +614,14 @@ void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
             g.FillRectangle(&brush, squareRect);
 
             //handle selected piece highlighting
-            if(chessGame.getSelectedPosX() == col && chessGame.getSelectedPosY() == row)
+            if(chessGame.getSelectedPosX() == boardCol && chessGame.getSelectedPosY() == boardRow)
             {
                 Gdiplus::Pen pen(Gdiplus::Color(255, 250, 170, 0), 4.0f);
                 g.DrawRectangle(&pen, squareRect);
             }
 
 
-            Piece piece = chessGame.getBoard().getPieceAt(col, row);
+            Piece piece = chessGame.getBoard().getPieceAt(boardCol, boardRow);
             if (piece.type != PieceType::NONE)
             {
                 Gdiplus::Image* pieceImage = nullptr;
@@ -562,18 +664,19 @@ void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
     Gdiplus::REAL topY    = (Gdiplus::REAL)(layout.originY - coordFontSize - 6.0f);
     Gdiplus::REAL bottomY = (Gdiplus::REAL)(layout.originY + layout.height() + 2.0f);
 
-    for (int col = 0; col < BoardUI::BoardCols; ++col)
+    for (int displayCol = 0; displayCol < BoardUI::BoardCols; ++displayCol)
     {
-        wchar_t fileText[2] = { (wchar_t)(L'a' + col), L'\0' };
+        int boardCol = displayToBoardCoord(displayCol);
+        wchar_t fileText[2] = { (wchar_t)(L'a' + boardCol), L'\0' };
 
         Gdiplus::RectF topRect(
-            (Gdiplus::REAL)(layout.originX + col * layout.squareSize),
+            (Gdiplus::REAL)(layout.originX + displayCol * layout.squareSize),
             topY,
             (Gdiplus::REAL)layout.squareSize,
             (Gdiplus::REAL)(coordFontSize + 8.0f));
 
         Gdiplus::RectF bottomRect(
-            (Gdiplus::REAL)(layout.originX + col * layout.squareSize),
+            (Gdiplus::REAL)(layout.originX + displayCol * layout.squareSize),
             bottomY,
             (Gdiplus::REAL)layout.squareSize,
             (Gdiplus::REAL)(coordFontSize + 8.0f));
@@ -586,26 +689,48 @@ void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout)
     Gdiplus::REAL leftX  = (Gdiplus::REAL)(layout.originX - coordFontSize - 8.0f);
     Gdiplus::REAL rightX = (Gdiplus::REAL)(layout.originX + layout.width() + 4.0f);
 
-    for (int row = 0; row < BoardUI::BoardRows; ++row)
+    for (int displayRow = 0; displayRow < BoardUI::BoardRows; ++displayRow)
     {
-        int rank = BoardUI::BoardRows - row;
+        int boardRow = displayToBoardCoord(displayRow);
+        int rank = BoardUI::BoardRows - boardRow;
         wchar_t rankText[2] = { (wchar_t)(L'0' + rank), L'\0' };
 
         Gdiplus::RectF leftRect(
             leftX,
-            (Gdiplus::REAL)(layout.originY + row * layout.squareSize),
+            (Gdiplus::REAL)(layout.originY + displayRow * layout.squareSize),
             (Gdiplus::REAL)(coordFontSize + 10.0f),
             (Gdiplus::REAL)layout.squareSize);
 
         Gdiplus::RectF rightRect(
             rightX,
-            (Gdiplus::REAL)(layout.originY + row * layout.squareSize),
+            (Gdiplus::REAL)(layout.originY + displayRow * layout.squareSize),
             (Gdiplus::REAL)(coordFontSize + 10.0f),
             (Gdiplus::REAL)layout.squareSize);
 
         g.DrawString(rankText, -1, &coordFont, leftRect, &rankFormat, &labelBrush);
         DrawRotatedText(g, rankText, coordFont, rightRect, rankFormat, labelBrush, 180.0f);
     }
+}
+
+void drawTimer(HWND hwnd, HDC hdc)
+{
+    Gdiplus::Graphics g(hdc);
+
+    g.SetSmoothingMode(Gdiplus::SmoothingModeHighQuality);
+    g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHighQuality);
+    g.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBilinear);
+
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+    RECT timerRect{
+        rc.right - 150,
+        10,
+        rc.right - 10,
+        10 + 40
+    };
+    float timerSize = 28.0f;
+    
+    
 }
 
 bool pointInBoard(const BoardLayout& layout, int x, int y)

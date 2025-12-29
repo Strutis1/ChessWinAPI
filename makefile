@@ -21,7 +21,7 @@ all: windows
 
 windows:
 	$(RC_WIN) Resources/main.rc -O coff -o $(RES)
-	$(CC_WIN) $(CFLAGS) $(SRC) $(RES) -o Chess.exe $(WIN_LIBS)
+	$(CC_WIN) $(CFLAGS) -IInclude $(SRC) $(RES) -o Chess.exe $(WIN_LIBS)
 
 clean:
 	$(RM) $(OBJ) $(RES) Chess.exe

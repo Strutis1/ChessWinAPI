@@ -2,12 +2,18 @@
 #define GAME_H
 
 #include "../Classes/board.h"
+#include "../Classes/move.h"
 #include "../Classes/piece.h"
 #include "../Classes/move.h"
 #include "../Utility/saveLoad.h"
+#include "../Include/aiLoader.h"
+#include "../Classes/gameTimer.h"
+
+#include <chrono>
 
 //TODO: enpessant, castling, promotion
-
+//TODO:make bot more random(less predictable)
+//TODO:make pieces draggable
 class ChessGame
 {
 private:
@@ -18,6 +24,7 @@ private:
     int selectedX;
     int selectedY;
     bool hasUnsavedChanges = false;
+    GameTimer gameTimer;
 
     PieceColor winner;
 
@@ -31,7 +38,7 @@ public:
 
     void init();
     bool isLegalMove(const Move& move);
-    void makeMove(const Move& move);
+    MoveResult tryMakeMove(const Move& move);
     void checkGameOver();
     void checkForSavedGame();
     bool saveGame();
@@ -54,6 +61,11 @@ public:
     void clearSelectedPiece() { currentSelected = Piece(); selectedX = -1; selectedY = -1; };
     void clearSelectedPosition() { selectedX = -1; selectedY = -1; };
 
+    void initTimer(std::chrono::milliseconds initialTime) { timeLeft = initialTime; };
+    void decrementTimer(std::chrono::milliseconds delta) { if (timeLeft > delta) timeLeft -= delta; else timeLeft = std::chrono::milliseconds(0); };
+    std::chrono::milliseconds getTimeLeft() const { return timeLeft; };
+
+
 
     Piece getSelectedPiece() const { return currentSelected; };
     int getSelectedPosX() const { return selectedX; };
@@ -63,6 +75,9 @@ public:
     PieceColor getWinner() const { return winner; }
     bool isGameOver() const { return gameOver; }
     bool hasDirtyState() const { return hasUnsavedChanges; }
+
+    void MakeAiMove();   
+    
 
 
 

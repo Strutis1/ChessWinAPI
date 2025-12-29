@@ -5,15 +5,19 @@
 #include <objidl.h>
 #include <gdiplus.h>
 #include "resource.h"
+#include "../Classes/piece.h"
+
+#include "../../Include/aiInterface.h"
 
 using namespace Gdiplus;
 
-#include "utilz.h"
-#include <objidl.h> // for IStream
 
-using namespace Gdiplus;
 
 Image *LoadPngFromResource(HINSTANCE hInst, int resourceID);
 int min(int a, int b);
+
+
+
+
 
 #endif

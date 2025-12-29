@@ -2,6 +2,7 @@
 #define SCREENS_H
 
 #include "windows.h"
+#include "../Include/aiInterface.h"
 
 #include <gdiplus.h>
 
@@ -18,15 +19,18 @@ struct Button
     void onHover(HWND hwnd, bool state);
 };
 
+
 extern Button playButton, loadButton, settingsButton, exitButton;
 extern Button retryButton, goExitButton;
 extern Button sillyBotButton, backButton;
+extern Button whiteButton, blackButton, colorBackButton;
 
 void drawMainMenu(HWND hwnd, HDC hdc);   // menu, button, background
 void drawDifficultyScreen(HWND hwnd, HDC hdc); // difficulty selection
+void drawColorSelectScreen(HWND hwnd, HDC hdc); // color selection
 void drawGameScreen(HWND hwnd, HDC hdc); // board, background, pieces
 void drawGameOver(HWND hwnd, HDC hdc);   // buttons/options to either exit, play again or back to menu
-
+void drawTimer(HWND hwnd, HDC hdc);
 
 
 struct BoardLayout
@@ -46,6 +50,8 @@ extern BoardLayout currentBoardLayout;
 void updateBoardLayout(HWND hwnd);
 void drawBoard(HWND hwnd, Gdiplus::Graphics& g, const BoardLayout& layout);
 bool pointInBoard(const BoardLayout& layout, int x, int y);
+int displayToBoardCoord(int displayCoord);
+int boardToDisplayCoord(int boardCoord);
 
 
 
