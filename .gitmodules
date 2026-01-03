@@ -1,0 +1,3 @@
+[submodule "ChessBotForChessWinApi"]
+	path = ChessBotForChessWinApi
+	url = https://github.com/Strutis1/ChessBotForChessWinApi
